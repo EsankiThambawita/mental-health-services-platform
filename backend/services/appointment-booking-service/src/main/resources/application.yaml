@@ -1,3 +1,10 @@
+server:
+  port: 8083
+
 spring:
   application:
     name: appointment-booking-service
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/mhs_appointment
