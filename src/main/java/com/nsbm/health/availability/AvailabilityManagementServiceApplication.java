@@ -9,5 +9,4 @@ public class AvailabilityManagementServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(AvailabilityManagementServiceApplication.class, args);
     }
-
 }
