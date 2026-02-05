@@ -1,4 +1,4 @@
-package com.mentalhealth.sessioncommunicationservice;
+package com.mentalhealth.chat;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
