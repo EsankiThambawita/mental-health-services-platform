@@ -1,4 +1,4 @@
-package com.nsbm.health.appointment.couselordirectoryservice;
+package com.nsbm.health.counselor.couselordirectoryservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
