@@ -1,6 +1,5 @@
 package com.nsbm.health.counselor.repository;
 
-import com.nsbm.health.counselor.model.CounselorProfile;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
