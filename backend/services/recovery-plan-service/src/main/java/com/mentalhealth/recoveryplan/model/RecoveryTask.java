@@ -13,6 +13,10 @@ public class RecoveryTask {
     private String conselorNotes; // Optional: Notes from counselor about this specific task
     private LocalDateTime createdAt;
 
+    // For MongoDB
+    public RecoveryTask() {
+    }
+
     public RecoveryTask(String taskID, String description, LocalDateTime dueDate, String conselorNotes) {
         this.taskID = taskID;
         this.description = description;
