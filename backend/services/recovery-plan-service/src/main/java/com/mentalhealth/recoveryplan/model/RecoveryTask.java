@@ -10,20 +10,20 @@ public class RecoveryTask {
     private LocalDateTime dueDate;
     private boolean completed;
     private LocalDateTime completedAt;
-    private String conselorNotes; // Optional: Notes from counselor about this specific task
+    private String counselorNotes; // Optional: Notes from counselor about this specific task
     private LocalDateTime createdAt;
 
     // For MongoDB
     public RecoveryTask() {
     }
 
-    public RecoveryTask(String taskID, String description, LocalDateTime dueDate, String conselorNotes) {
+    public RecoveryTask(String taskID, String description, LocalDateTime dueDate, String counselorNotes) {
         this.taskID = taskID;
         this.description = description;
         this.dueDate = dueDate;
         this.completed = false;
         this.completedAt = null;
-        this.conselorNotes = conselorNotes;
+        this.counselorNotes = counselorNotes;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -67,12 +67,12 @@ public class RecoveryTask {
         this.completedAt = completedAt;
     }
 
-    public String getConselorNotes() {
-        return conselorNotes;
+    public String getCounselorNotes() {
+        return counselorNotes;
     }
 
-    public void setConselorNotes(String conselorNotes) {
-        this.conselorNotes = conselorNotes;
+    public void setCounselorNotes(String counselorNotes) {
+        this.counselorNotes = counselorNotes;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -17,7 +17,7 @@ public class RecoveryPlan {
 
     private String patientId;
 
-    private String conselorId;
+    private String counselorId;
 
     private String appointmentId;
 
@@ -41,10 +41,10 @@ public class RecoveryPlan {
     public RecoveryPlan() {
     }
 
-    public RecoveryPlan(String patientId, String conselorId, String title, String description, LocalDateTime startDate,
+    public RecoveryPlan(String patientId, String counselorId, String title, String description, LocalDateTime startDate,
             LocalDateTime endDate) {
         this.patientId = patientId;
-        this.conselorId = conselorId;
+        this.counselorId = counselorId;
         this.title = title;
         this.description = description;
         this.startDate = startDate;
@@ -63,8 +63,8 @@ public class RecoveryPlan {
         return patientId;
     }
 
-    public String getConselorId() {
-        return conselorId;
+    public String getCounselorId() {
+        return counselorId;
     }
 
     public String getAppointmentId() {
@@ -111,8 +111,8 @@ public class RecoveryPlan {
         this.patientId = patientId;
     }
 
-    public void setConselorId(String conselorId) {
-        this.conselorId = conselorId;
+    public void setCounselorId(String counselorId) {
+        this.counselorId = counselorId;
     }
 
     public void setAppointmentId(String appointmentId) {
