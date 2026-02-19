@@ -51,34 +51,13 @@ public class MoodEntryController {
     }
 
     /**
-     * GET - Get all mood entries for a user
+     * GET - Get all mood entries for a user, sorted by newest first
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<MoodEntry>> getUserMoodEntries(@PathVariable String userId) {
-        // Return all active (non-deleted) entries
-        List<MoodEntry> entries = moodEntryService.getUserMoodEntries(userId);
-        return ResponseEntity.ok(entries);
-    }
-
-    /**
-     * GET - Get all entries for user, newest first
-     */
-    @GetMapping("/user/{userId}/latest")
-    public ResponseEntity<List<MoodEntry>> getUserMoodEntriesLatest(@PathVariable String userId) {
         // Return entries sorted by creation date, most recent first
         List<MoodEntry> entries = moodEntryService.getUserMoodEntriesLatest(userId);
         return ResponseEntity.ok(entries);
-    }
-
-    /**
-     * GET - Get the most recent mood entry for a user
-     */
-    @GetMapping("/user/{userId}/last")
-    public ResponseEntity<MoodEntry> getLatestMoodEntry(@PathVariable String userId) {
-        // Return just the most recent entry
-        Optional<MoodEntry> entry = moodEntryService.getLatestMoodEntry(userId);
-        return entry.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
@@ -103,18 +82,6 @@ public class MoodEntryController {
             @PathVariable String category) {
         // Return entries with this mood category
         List<MoodEntry> entries = moodEntryService.getMoodEntriesByCategory(userId, category);
-        return ResponseEntity.ok(entries);
-    }
-
-    /**
-     * GET - Get entries with mood level in a range
-     */
-    @GetMapping("/user/{userId}/level-range")
-    public ResponseEntity<List<MoodEntry>> getMoodEntriesByLevelRange(
-            @PathVariable String userId,
-            @RequestParam Integer minLevel,
-            @RequestParam Integer maxLevel) {
-        List<MoodEntry> entries = moodEntryService.getMoodEntriesByLevelRange(userId, minLevel, maxLevel);
         return ResponseEntity.ok(entries);
     }
 
@@ -177,29 +144,4 @@ public class MoodEntryController {
         MoodStatistics statistics = moodEntryService.getMoodStatistics(userId, startDate, endDate);
         return ResponseEntity.ok(statistics);
     }
-
-    /**
-     * Get average mood level
-     */
-    @GetMapping("/user/{userId}/average")
-    public ResponseEntity<Double> getAverageMoodLevel(
-            @PathVariable String userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        Double average = moodEntryService.calculateAverageMoodLevel(userId, startDate, endDate);
-        return ResponseEntity.ok(average);
-    }
-
-    /**
-     * Count mood entries in a date range
-     */
-    @GetMapping("/user/{userId}/count")
-    public ResponseEntity<Long> countMoodEntries(
-            @PathVariable String userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        long count = moodEntryService.countMoodEntriesInRange(userId, startDate, endDate);
-        return ResponseEntity.ok(count);
-    }
 }
-

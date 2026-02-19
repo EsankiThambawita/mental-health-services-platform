@@ -6,7 +6,6 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Repository for MoodEntry CRUD operations and custom queries
@@ -33,7 +32,4 @@ public interface MoodEntryRepository extends MongoRepository<MoodEntry, String> 
     List<MoodEntry> findLowMoodEntries(String userId, Integer threshold);
 
     long countByUserIdAndCreatedAtBetween(String userId, LocalDateTime startDate, LocalDateTime endDate);
-
-    Optional<MoodEntry> findFirstByUserIdOrderByCreatedAtDesc(String userId);
 }
-
