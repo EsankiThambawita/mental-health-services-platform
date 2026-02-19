@@ -1,9 +1,9 @@
 package com.nsbm.health.counselor.service.impl;
+import com.nsbm.health.counselor.util.MapperUtil;
 import com.nsbm.health.counselor.dto.*;
 import com.nsbm.health.counselor.model.CounselorProfile;
 import com.nsbm.health.counselor.repository.CounselorRepository;
 import com.nsbm.health.counselor.service.CounselorService;
-import com.nsbm.health.counselor.util.MapperUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
