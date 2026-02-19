@@ -11,3 +11,4 @@ public interface CounselorRepository extends MongoRepository<CounselorProfile, S
 
     List<CounselorProfile> findByLanguagesContaining(String language);
 }
+
