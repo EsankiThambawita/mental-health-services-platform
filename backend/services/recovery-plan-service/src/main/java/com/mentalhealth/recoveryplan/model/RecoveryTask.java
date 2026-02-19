@@ -27,11 +27,11 @@ public class RecoveryTask {
         this.createdAt = LocalDateTime.now();
     }
 
-    public String getTaskID() {
+    public String getTaskId() {
         return taskID;
     }
 
-    public void setTaskID(String taskID) {
+    public void setTaskId(String taskID) {
         this.taskID = taskID;
     }
 
