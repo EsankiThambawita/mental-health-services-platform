@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
         ErrorResponse error = new ErrorResponse(
-            "An Unexpected Error Occurrred: " + ex.getMessage(),
+            "An Unexpected Error Occurred: " + ex.getMessage(),
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             LocalDateTime.now()
         );
@@ -83,60 +83,17 @@ public class GlobalExceptionHandler {
     }
 
     // Error Response
-    public static class ErrorResponse {
-        private int status;
-        private String message;
-        private LocalDateTime timestamp;
-
-        public ErrorResponse(String message, int status, LocalDateTime timestamp) {
-            this.message = message;
-            this.status = status;
-            this.timestamp = timestamp;
-        }
-
-        public int getStatus() {
-            return status;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public LocalDateTime getTimestamp() {
-            return timestamp;
-        }
-        // Setters arent necessary (i think)
-    }
+    public record ErrorResponse(
+        String message,
+        int status,
+        LocalDateTime timestamp
+    ) {}
 
     // Validation Error Response
-    public static class ValidationErrorResponse {
-        private int status;
-        private String message;
-        private Map<String, String> fieldErrors;
-        private LocalDateTime timestamp;
-
-        public ValidationErrorResponse(Map<String, String> fieldErrors, String message, int status, LocalDateTime timestamp) {
-            this.fieldErrors = fieldErrors;
-            this.message = message;
-            this.status = status;
-            this.timestamp = timestamp;
-        }
-
-        public int getStatus() {
-            return status;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public Map<String, String> getFieldErrors() {
-            return fieldErrors;
-        }
-
-        public LocalDateTime getTimestamp() {
-            return timestamp;
-        }
-        
-    }
+    public record ValidationErrorResponse(
+        Map<String, String> fieldErrors,
+        String message,
+        int status,
+        LocalDateTime timestamp
+    ) {}
 }
