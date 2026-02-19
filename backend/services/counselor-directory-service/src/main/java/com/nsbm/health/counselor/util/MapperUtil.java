@@ -1,4 +1,5 @@
-package util;
+package com.nsbm.health.counselor.util;
+
 import com.nsbm.health.counselor.dto.*;
 import com.nsbm.health.counselor.model.CounselorProfile;
 
