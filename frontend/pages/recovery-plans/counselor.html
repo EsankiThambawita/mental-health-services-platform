@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recovery Plans - Counselor Dashboard</title>
+  <link rel="stylesheet" href="../../css/recovery-plans.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <h1>Recovery Plans Management</h1>
+    <p style="margin-bottom: 32px;">Create and manage recovery plans for your patients.</p>
+
+    <!-- Create Plan Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2 style="margin: 0;">Create New Plan</h2>
+        <button id="toggleFormBtn" class="btn-small">Show Form</button>
+      </div>
+      
+      <form id="createPlanForm" class="hidden">
+        <div class="form-group">
+          <label for="patientId">Patient ID*</label>
+          <input type="text" id="patientId" required placeholder="e.g., patient123">
+        </div>
+
+        <div class="form-group">
+          <label for="title">Plan Title*</label>
+          <input type="text" id="title" required placeholder="e.g., 3-Month Anxiety Management Plan">
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" placeholder="Describe the goals and approach for this recovery plan..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="startDate">Start Date*</label>
+          <input type="datetime-local" id="startDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="endDate">End Date</label>
+          <input type="datetime-local" id="endDate">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Create Recovery Plan</button>
+      </form>
+    </div>
+
+    <!-- Plans List Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2 style="margin: 0;">My Recovery Plans</h2>
+        <button id="refreshBtn" class="btn-small">Refresh</button>
+      </div>
+
+      <div id="loadingPlans" class="loading hidden">Loading plans...</div>
+      <div id="emptyState" class="empty-state hidden">
+        No recovery plans yet. Create your first plan above!
+      </div>
+      <div id="plansList"></div>
+    </div>
+  </div>
+
+  <!-- Modal for Managing Tasks -->
+  <div id="taskModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalPlanTitle" style="margin: 0;">Manage Tasks</h2>
+        <button class="modal-close" id="closeModal">&times;</button>
+      </div>
+
+      <!-- Add Task Form -->
+      <form id="addTaskForm" style="margin-bottom: 24px;">
+        <h3>Add New Task</h3>
+        
+        <div class="form-group">
+          <label for="taskDescription">Task Description*</label>
+          <input type="text" id="taskDescription" required placeholder="e.g., Practice deep breathing for 10 minutes daily">
+        </div>
+
+        <div class="form-group">
+          <label for="taskDueDate">Due Date*</label>
+          <input type="datetime-local" id="taskDueDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="taskNotes">Counselor Notes</label>
+          <textarea id="taskNotes" placeholder="Additional guidance or tips for the patient..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block">Add Task</button>
+      </form>
+
+      <!-- Tasks List -->
+      <div>
+        <h3>Current Tasks</h3>
+        <div id="tasksLoading" class="loading hidden">Loading tasks...</div>
+        <div id="emptyTasks" class="empty-state hidden">No tasks yet. Add one above!</div>
+        <ul id="tasksList" class="task-list"></ul>
+      </div>
+
+      <!-- Plan Actions -->
+      <div class="mt-lg">
+        <h3>Plan Status</h3>
+        <div class="flex-between" style="gap: 8px;">
+          <select id="planStatusSelect" class="form-group" style="flex: 1; margin: 0;">
+            <option value="ACTIVE">Active</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+          <button id="updateStatusBtn" class="btn btn-warning">Update Status</button>
+        </div>
+        
+        <button id="deletePlanBtn" class="btn btn-danger btn-block mt-lg">Delete Entire Plan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div id="editTaskModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 style="margin: 0;">Edit Task</h2>
+        <button class="modal-close" id="closeEditModal">&times;</button>
+      </div>
+
+      <form id="editTaskForm">
+        <div class="form-group">
+          <label for="editTaskDescription">Task Description*</label>
+          <input type="text" id="editTaskDescription" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editTaskDueDate">Due Date*</label>
+          <input type="datetime-local" id="editTaskDueDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editTaskNotes">Counselor Notes</label>
+          <textarea id="editTaskNotes"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Hidden input to store counselor ID -->
+  <input type="hidden" id="counselorId" value="">
+
+  <script src="../../js/config.js"></script>
+  <script src="../../js/counselor.js"></script>
+</body>
+</html>
