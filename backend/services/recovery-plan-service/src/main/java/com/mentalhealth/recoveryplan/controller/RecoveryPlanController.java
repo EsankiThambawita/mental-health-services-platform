@@ -33,7 +33,6 @@ public class RecoveryPlanController {
 
     private final RecoveryPlanService service;
 
-    // apparently, spring injects the service automatically
     public RecoveryPlanController(RecoveryPlanService service) {
         this.service = service;
     }
