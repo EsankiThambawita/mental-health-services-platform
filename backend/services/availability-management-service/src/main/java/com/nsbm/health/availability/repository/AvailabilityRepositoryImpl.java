@@ -1,8 +1,7 @@
-package com.nsbm.health.availability.repository.impl;
+package com.nsbm.health.availability.repository;
 
 import com.nsbm.health.availability.model.AvailabilitySlot;
 import com.nsbm.health.availability.model.AvailabilityStatus;
-import com.nsbm.health.availability.repository.AvailabilityRepositoryCustom;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;

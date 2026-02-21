@@ -1,7 +1,9 @@
 package com.nsbm.health.availability.exception;
 
-public class BadRequestException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class BadRequestException extends BaseApiException {
     public BadRequestException(String message) {
-        super(message);
+        super(HttpStatus.BAD_REQUEST, message);
     }
 }

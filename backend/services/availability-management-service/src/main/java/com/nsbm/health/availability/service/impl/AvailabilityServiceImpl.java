@@ -1,5 +1,4 @@
-
-package com.nsbm.health.availability.service;
+package com.nsbm.health.availability.service.impl;
 
 import com.nsbm.health.availability.dto.AvailabilityResponse;
 import com.nsbm.health.availability.dto.CreateAvailabilityRequest;
@@ -9,8 +8,10 @@ import com.nsbm.health.availability.exception.ResourceNotFoundException;
 import com.nsbm.health.availability.model.AvailabilitySlot;
 import com.nsbm.health.availability.model.AvailabilityStatus;
 import com.nsbm.health.availability.repository.AvailabilityRepository;
+import com.nsbm.health.availability.service.AvailabilityService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -18,6 +19,8 @@ import java.util.List;
 
 @Service
 public class AvailabilityServiceImpl implements AvailabilityService {
+
+    private static final Logger log = LoggerFactory.getLogger(AvailabilityServiceImpl.class);
 
     private final AvailabilityRepository availabilityRepository;
 
@@ -32,28 +35,43 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override
     public AvailabilityResponse bookAvailability(String availabilityId) {
 
+        if (availabilityId == null || availabilityId.isBlank()) {
+            throw new BadRequestException("availabilityId is required");
+        }
+
+        log.info("Booking availability slot: {}", availabilityId);
+
         AvailabilitySlot updated = availabilityRepository
                 .bookIfAvailable(availabilityId)
                 .orElse(null);
 
         if (updated != null) {
+            log.info("Booked successfully: {}", availabilityId);
             return toResponse(updated);
         }
 
         // Determine failure reason
         if (!availabilityRepository.existsById(availabilityId)) {
-            throw new ResourceNotFoundException(
-                    "Availability slot not found: " + availabilityId
-            );
+            log.warn("Booking failed - slot not found: {}", availabilityId);
+            throw new ResourceNotFoundException("Availability slot not found: " + availabilityId);
         }
 
+        log.warn("Booking failed - already booked: {}", availabilityId);
         throw new ConflictException("Availability slot is already booked");
     }
 
     @Override
     public AvailabilityResponse createAvailability(CreateAvailabilityRequest request) {
 
+        if (request == null) {
+            throw new BadRequestException("request body is required");
+        }
+
         validateTimeRange(request.getStartTime(), request.getEndTime());
+
+        log.info("Creating availability: counselorId={}, date={}, {}-{}",
+                request.getCounselorId(), request.getDate(),
+                request.getStartTime(), request.getEndTime());
 
         List<AvailabilitySlot> sameDaySlots =
                 availabilityRepository.findByCounselorIdAndDateOrderByStartTimeAsc(
@@ -68,6 +86,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                     existing.getStartTime(),
                     existing.getEndTime()
             )) {
+                log.warn("Create failed - overlap detected with slotId={}", existing.getAvailabilityId());
                 throw new ConflictException(
                         "Overlapping availability slot exists for this counselor on the given date"
                 );
@@ -81,7 +100,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         slot.setEndTime(request.getEndTime());
         slot.setStatus(AvailabilityStatus.AVAILABLE);
 
-        return toResponse(availabilityRepository.save(slot));
+        AvailabilitySlot saved = availabilityRepository.save(slot);
+
+        log.info("Availability created: availabilityId={}", saved.getAvailabilityId());
+
+        return toResponse(saved);
     }
 
     @Override
@@ -93,6 +116,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         if (date == null) {
             throw new BadRequestException("date is required");
         }
+
+        log.info("Fetching availability: counselorId={}, date={}", counselorId, date);
 
         return availabilityRepository
                 .findByCounselorIdAndDateOrderByStartTimeAsc(counselorId, date)
@@ -134,4 +159,3 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return resp;
     }
 }
-//TODO ADD AVAILABILITYSERVICEIMPL INSIDE NEW PACKAGE IMPL

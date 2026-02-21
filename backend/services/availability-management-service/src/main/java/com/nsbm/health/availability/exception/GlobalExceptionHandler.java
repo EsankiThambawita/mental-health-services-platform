@@ -2,6 +2,8 @@ package com.nsbm.health.availability.exception;
 
 import com.nsbm.health.availability.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -15,19 +17,11 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest req) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), req.getRequestURI());
-    }
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ApiErrorResponse> handleConflict(ConflictException ex, HttpServletRequest req) {
-        return build(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI());
-    }
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiErrorResponse> handleBadRequest(BadRequestException ex, HttpServletRequest req) {
-        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req.getRequestURI());
+    @ExceptionHandler(BaseApiException.class)
+    public ResponseEntity<ApiErrorResponse> handleBaseApiException(BaseApiException ex, HttpServletRequest req) {
+        return build(ex.getStatus(), ex.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -40,7 +34,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex, HttpServletRequest req) {
-        // Avoid leaking internals; log server-side in real deployments
+        // Log the real exception for debugging
+        log.error("Unhandled exception at {}: {}", req.getRequestURI(), ex.getMessage(), ex);
+        // Return safe message to client
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred", req.getRequestURI());
     }
 
@@ -58,6 +54,3 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 }
-
-
-//TODO USE GLOBAL EXCEPTION IMPL OR EXTEND INSDE EXCEPTIONS
