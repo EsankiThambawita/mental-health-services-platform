@@ -11,3 +11,4 @@ public class AvailabilityManagementServiceApplication {
 	}
 
 }
+//TODO ADD ALL HARDCODED VALUES INSIDE UTIL PACKAGE

@@ -6,7 +6,10 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface AvailabilityRepository extends MongoRepository<AvailabilitySlot, String> {
+public interface AvailabilityRepository extends MongoRepository<AvailabilitySlot, String>, AvailabilityRepositoryCustom {
 
     List<AvailabilitySlot> findByCounselorIdAndDateOrderByStartTimeAsc(String counselorId, LocalDate date);
 }
+
+
+//TODO ADD AVAILABILITYREPOSITORY CUSTOM INSDE AVAILABILITY REPOSITORY ITSELF

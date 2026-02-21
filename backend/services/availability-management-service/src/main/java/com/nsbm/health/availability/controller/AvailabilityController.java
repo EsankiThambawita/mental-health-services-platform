@@ -14,8 +14,12 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
+// TODO add doc comment, add base url
+//TODO hard coded , make inside util
+// TODO ADD LOGS
+
 @RestController
-@RequestMapping("/api/availability")
+@RequestMapping("/api/v1/availability")
 @Tag(name = "Availability", description = "Manage counselor availability slots")
 public class AvailabilityController {
 

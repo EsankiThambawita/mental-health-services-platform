@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+//TODO add constructor
 
 @Document(collection = "availability_slots")
 @CompoundIndex(name = "idx_counselor_date", def = "{'counselorId': 1, 'date': 1}")

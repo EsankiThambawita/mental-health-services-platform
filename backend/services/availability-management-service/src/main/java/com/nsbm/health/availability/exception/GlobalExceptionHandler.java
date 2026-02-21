@@ -58,3 +58,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 }
+
+
+//TODO USE GLOBAL EXCEPTION IMPL OR EXTEND INSDE EXCEPTIONS

@@ -1,3 +1,4 @@
+
 package com.nsbm.health.availability.service;
 
 import com.nsbm.health.availability.dto.AvailabilityResponse;
@@ -9,6 +10,7 @@ import com.nsbm.health.availability.model.AvailabilitySlot;
 import com.nsbm.health.availability.model.AvailabilityStatus;
 import com.nsbm.health.availability.repository.AvailabilityRepository;
 import org.springframework.stereotype.Service;
+
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,19 +25,52 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         this.availabilityRepository = availabilityRepository;
     }
 
+    /**
+     * Atomically books an availability slot if it is still AVAILABLE.
+     * Prevents double booking in concurrent scenarios.
+     */
+    @Override
+    public AvailabilityResponse bookAvailability(String availabilityId) {
+
+        AvailabilitySlot updated = availabilityRepository
+                .bookIfAvailable(availabilityId)
+                .orElse(null);
+
+        if (updated != null) {
+            return toResponse(updated);
+        }
+
+        // Determine failure reason
+        if (!availabilityRepository.existsById(availabilityId)) {
+            throw new ResourceNotFoundException(
+                    "Availability slot not found: " + availabilityId
+            );
+        }
+
+        throw new ConflictException("Availability slot is already booked");
+    }
+
     @Override
     public AvailabilityResponse createAvailability(CreateAvailabilityRequest request) {
+
         validateTimeRange(request.getStartTime(), request.getEndTime());
 
-        // Load same-counselor same-day slots and ensure no overlap.
-        // Overlap rule: [start, end) intersects [existingStart, existingEnd)
-        // i.e., start < existingEnd AND end > existingStart
         List<AvailabilitySlot> sameDaySlots =
-                availabilityRepository.findByCounselorIdAndDateOrderByStartTimeAsc(request.getCounselorId(), request.getDate());
+                availabilityRepository.findByCounselorIdAndDateOrderByStartTimeAsc(
+                        request.getCounselorId(),
+                        request.getDate()
+                );
 
         for (AvailabilitySlot existing : sameDaySlots) {
-            if (overlaps(request.getStartTime(), request.getEndTime(), existing.getStartTime(), existing.getEndTime())) {
-                throw new ConflictException("Overlapping availability slot exists for this counselor on the given date");
+            if (overlaps(
+                    request.getStartTime(),
+                    request.getEndTime(),
+                    existing.getStartTime(),
+                    existing.getEndTime()
+            )) {
+                throw new ConflictException(
+                        "Overlapping availability slot exists for this counselor on the given date"
+                );
             }
         }
 
@@ -46,12 +81,12 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         slot.setEndTime(request.getEndTime());
         slot.setStatus(AvailabilityStatus.AVAILABLE);
 
-        AvailabilitySlot saved = availabilityRepository.save(slot);
-        return toResponse(saved);
+        return toResponse(availabilityRepository.save(slot));
     }
 
     @Override
     public List<AvailabilityResponse> getAvailability(String counselorId, LocalDate date) {
+
         if (counselorId == null || counselorId.isBlank()) {
             throw new BadRequestException("counselorId is required");
         }
@@ -59,24 +94,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             throw new BadRequestException("date is required");
         }
 
-        return availabilityRepository.findByCounselorIdAndDateOrderByStartTimeAsc(counselorId, date)
+        return availabilityRepository
+                .findByCounselorIdAndDateOrderByStartTimeAsc(counselorId, date)
                 .stream()
                 .map(this::toResponse)
                 .toList();
-    }
-
-    @Override
-    public AvailabilityResponse bookAvailability(String availabilityId) {
-        AvailabilitySlot slot = availabilityRepository.findById(availabilityId)
-                .orElseThrow(() -> new ResourceNotFoundException("Availability slot not found: " + availabilityId));
-
-        if (slot.getStatus() == AvailabilityStatus.BOOKED) {
-            throw new ConflictException("Availability slot is already booked");
-        }
-
-        slot.setStatus(AvailabilityStatus.BOOKED);
-        AvailabilitySlot saved = availabilityRepository.save(slot);
-        return toResponse(saved);
     }
 
     private void validateTimeRange(LocalTime start, LocalTime end) {
@@ -88,7 +110,16 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         }
     }
 
-    private boolean overlaps(LocalTime start, LocalTime end, LocalTime existingStart, LocalTime existingEnd) {
+    /**
+     * Overlap condition:
+     * [start, end) intersects [existingStart, existingEnd)
+     */
+    private boolean overlaps(
+            LocalTime start,
+            LocalTime end,
+            LocalTime existingStart,
+            LocalTime existingEnd
+    ) {
         return start.isBefore(existingEnd) && end.isAfter(existingStart);
     }
 
@@ -103,3 +134,4 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return resp;
     }
 }
+//TODO ADD AVAILABILITYSERVICEIMPL INSIDE NEW PACKAGE IMPL
