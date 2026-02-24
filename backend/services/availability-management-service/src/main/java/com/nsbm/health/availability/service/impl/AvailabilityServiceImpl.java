@@ -158,4 +158,16 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         resp.setStatus(slot.getStatus());
         return resp;
     }
+    @Override
+    public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
+        if (date == null) {
+            throw new BadRequestException("date is required");
+        }
+
+        return availabilityRepository
+                .findByDateAndStatusOrderByStartTimeAsc(date, AvailabilityStatus.AVAILABLE)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 }

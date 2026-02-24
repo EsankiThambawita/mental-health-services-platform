@@ -1,6 +1,7 @@
 package com.nsbm.health.availability.repository;
 
 import com.nsbm.health.availability.model.AvailabilitySlot;
+import com.nsbm.health.availability.model.AvailabilityStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.time.LocalDate;
@@ -10,4 +11,5 @@ public interface AvailabilityRepository
         extends MongoRepository<AvailabilitySlot, String>, AvailabilityRepositoryCustom {
 
     List<AvailabilitySlot> findByCounselorIdAndDateOrderByStartTimeAsc(String counselorId, LocalDate date);
+    List<AvailabilitySlot> findByDateAndStatusOrderByStartTimeAsc(LocalDate date, AvailabilityStatus status);
 }

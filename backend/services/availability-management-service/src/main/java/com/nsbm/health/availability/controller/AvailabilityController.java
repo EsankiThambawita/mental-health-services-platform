@@ -1,5 +1,4 @@
 package com.nsbm.health.availability.controller;
-
 import com.nsbm.health.availability.dto.AvailabilityResponse;
 import com.nsbm.health.availability.dto.CreateAvailabilityRequest;
 import com.nsbm.health.availability.service.AvailabilityService;
@@ -17,15 +16,15 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * REST controller for managing counselor availability slots.
- *
- * Base path: /api/v1/availability
- * Supports:
- * - Creating non-overlapping availability slots
- * - Querying availability for a counselor on a specific date
- * - Booking an availability slot
- */
+
+/// REST controller for managing counselor availability slots.
+///
+/// Base path: /api/v1/availability
+/// Supports:
+/// - Creating non-overlapping availability slots
+/// - Querying availability for a counselor on a specific date
+/// - Booking an availability slot
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(AvailabilityController.BASE_PATH)
 @Tag(name = "Availability", description = "Manage counselor availability slots")
@@ -86,5 +85,13 @@ public class AvailabilityController {
         log.info("Availability booked: availabilityId={}, status={}", id, booked.getStatus());
 
         return ResponseEntity.ok(booked);
+    }
+    @Operation(summary = "Get all AVAILABLE slots by date")
+    @GetMapping("/available")
+    public ResponseEntity<List<AvailabilityResponse>> getAvailableByDate(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        log.info("Get available slots by date: {}", date);
+        return ResponseEntity.ok(availabilityService.getAvailableSlotsByDate(date));
     }
 }

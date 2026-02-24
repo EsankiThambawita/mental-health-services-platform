@@ -13,4 +13,5 @@ public interface AvailabilityService {
     List<AvailabilityResponse> getAvailability(String counselorId, LocalDate date);
 
     AvailabilityResponse bookAvailability(String availabilityId);
+    List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date);
 }
