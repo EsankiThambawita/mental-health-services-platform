@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: resources-mood-tracking-service
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: mental-health-mood-tracking
+      auto-index-creation: true
+
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: INFO
+    com.nsbm.health: DEBUG
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    enabled: true
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  use-fqn: true
+  show-actuator: false
+  model-and-view-allowed: false
+
