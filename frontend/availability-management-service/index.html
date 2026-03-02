@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Availability Management | Counselor Scheduling</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Background gradient decoration -->
+<div class="background-gradient"></div>
+
+<div class="container">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">📅</div>
+                <div>
+                    <h1>Availability Manager</h1>
+                    <p class="subtitle">Schedule and manage counseling sessions</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Create Slot Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Create Availability Slot</h2>
+                <p class="section-description">Add a new time slot for your availability</p>
+            </div>
+
+            <div class="card create-card">
+                <form id="createSlotForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="createCounselorId">Counselor ID</label>
+                            <input
+                                    type="text"
+                                    id="createCounselorId"
+                                    placeholder="e.g., COUN-001"
+                                    required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="createDate">Date</label>
+                            <input
+                                    type="date"
+                                    id="createDate"
+                                    required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="startTime">Start Time</label>
+                            <input
+                                    type="time"
+                                    id="startTime"
+                                    required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endTime">End Time</label>
+                            <input
+                                    type="time"
+                                    id="endTime"
+                                    required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="createSubmitBtn">
+                            <span class="btn-icon">+</span> Create Slot
+                        </button>
+                        <button type="reset" class="btn btn-secondary">Clear</button>
+                    </div>
+                </form>
+
+                <div id="createMessage" class="message"></div>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Search Availability</h2>
+                <p class="section-description">Find available slots by counselor and date</p>
+            </div>
+
+            <div class="card search-card">
+                <form id="searchForm">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="searchCounselorId">Counselor ID</label>
+                            <input
+                                    type="text"
+                                    id="searchCounselorId"
+                                    placeholder="e.g., COUN-001"
+                                    required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="searchDate">Date</label>
+                            <input
+                                    type="date"
+                                    id="searchDate"
+                                    required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="searchSubmitBtn">
+                        <span class="btn-icon">🔍</span> Search Slots
+                    </button>
+                </form>
+            </div>
+        </section>
+        <div class="card">
+            <h2>Show ALL Available Slots (by Date)</h2>
+            <input type="date" id="availableDate">
+            <button onclick="fetchAllAvailable()">Show Available Slots</button>
+        </div>
+        <!-- Results Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Available Slots</h2>
+                <p class="section-description">View and manage booking availability</p>
+            </div>
+
+            <div class="card results-card">
+                <div id="noResults" class="no-results">
+                    <p>Enter search criteria and click "Search Slots" to view availability</p>
+                </div>
+
+                <div id="loadingSpinner" class="loading-spinner hidden">
+                    <div class="spinner"></div>
+                    <p>Loading slots...</p>
+                </div>
+
+                <div id="tableContainer" class="table-container hidden">
+                    <table class="slots-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Counselor</th>
+                            <th>Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Availability Manager. All rights reserved.</p>
+    </footer>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
