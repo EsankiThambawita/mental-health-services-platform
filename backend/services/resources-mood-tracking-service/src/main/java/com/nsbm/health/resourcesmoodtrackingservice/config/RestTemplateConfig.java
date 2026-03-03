@@ -4,16 +4,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Configuration for RestTemplate used to call other microservices.
- */
+// REST template for inter-service calls
 @Configuration
 public class RestTemplateConfig {
 
-    /**
-     * Creates a RestTemplate bean for inter-service communication.
-     * Used to call the Availability Management Service and other services.
-     */
+    // Create REST template bean
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();

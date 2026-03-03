@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Controller for fetching counselor availability from the Availability Management Service.
- * This demonstrates inter-service communication between microservices.
- */
+// Fetches counselor availability from the Availability Management Service
 @RestController
 @RequestMapping("/v1/counselor-availability")
 @AllArgsConstructor
@@ -25,13 +22,7 @@ public class CounselorAvailabilityController {
 
     private final AvailabilityClientService availabilityClientService;
 
-    /**
-     * GET - Fetch availability slots for a specific counselor on a given date.
-     *
-     * Example: GET /api/v1/counselor-availability?counselorId=abc123&date=2026-03-10
-     *
-     * This calls the Availability Management Service internally.
-     */
+    // Get availability for a specific counselor on a date
     @Operation(
             summary = "Get counselor availability by counselor ID and date",
             description = "Fetches availability slots from the Availability Management Service for a specific counselor on a given date"
@@ -50,13 +41,7 @@ public class CounselorAvailabilityController {
         return ResponseEntity.ok(slots);
     }
 
-    /**
-     * GET - Fetch all available (not booked) slots on a given date across all counselors.
-     *
-     * Example: GET /api/v1/counselor-availability/available?date=2026-03-10
-     *
-     * This calls the Availability Management Service internally.
-     */
+    // Get all available (not booked) slots on a date
     @Operation(
             summary = "Get all available slots by date",
             description = "Fetches all AVAILABLE (not booked) slots from the Availability Management Service for a given date"
