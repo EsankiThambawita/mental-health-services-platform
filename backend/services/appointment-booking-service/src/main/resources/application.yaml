@@ -21,3 +21,8 @@ springdoc:
 logging:
   level:
     com.nsbm.health.appointment: DEBUG
+
+recovery:
+  plan:
+    service:
+      url: http://localhost:8081

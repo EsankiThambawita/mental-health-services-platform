@@ -5,6 +5,7 @@ import com.nsbm.health.appointment.dto.BookAppointmentRequest;
 import com.nsbm.health.appointment.dto.CancelAppointmentRequest;
 import com.nsbm.health.appointment.dto.RescheduleAppointmentRequest;
 import com.nsbm.health.appointment.service.AppointmentService;
+import com.nsbm.health.appointment.service.RecoveryPlanIntegrationService;
 import com.nsbm.health.appointment.util.ApiPaths;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for appointment booking operations.
@@ -32,9 +35,11 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final RecoveryPlanIntegrationService recoveryPlanService; // ← ADD THIS
 
     public AppointmentController(AppointmentService appointmentService) {
         this.appointmentService = appointmentService;
+        this.recoveryPlanService = null;
     }
 
     @Operation(summary = "Book a new appointment")
@@ -74,5 +79,34 @@ public class AppointmentController {
             return ResponseEntity.ok(appointmentService.getAppointmentsByUserId(userId));
         }
         return ResponseEntity.ok(appointmentService.getAppointmentsByCounselorId(counselorId));
+    }
+
+    @Operation(summary = "Create recovery plan from appointment")
+    @PostMapping("/{id}/create-recovery-plan")
+    public ResponseEntity<Map<String, String>> createRecoveryPlan(
+            @PathVariable("id") String appointmentId,
+            @RequestParam String notes) {
+
+        // Get appointment details (you'll need to fetch the appointment first)
+        // AppointmentResponse appointment =
+        // appointmentService.getAppointmentById(appointmentId);
+
+        // For now, using dummy data - replace with actual appointment data
+        String planId = recoveryPlanService.createRecoveryPlanFromAppointment(
+                appointmentId,
+                "userId-from-appointment", // Get from appointment
+                "counselorId-from-appointment", // Get from appointment
+                LocalDateTime.now(), // Get from appointment
+                notes);
+
+        if (planId != null) {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Recovery plan created successfully",
+                    "planId", planId,
+                    "appointmentId", appointmentId));
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create recovery plan"));
+        }
     }
 }
