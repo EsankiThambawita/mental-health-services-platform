@@ -808,6 +808,69 @@ body {
   justify-content: center;
 }
 
+/* ========== COUNSELORS AVAILABLE TODAY ========== */
+.availability-today-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.availability-today-card {
+  background: var(--mt-bg-primary);
+  border-radius: var(--mt-radius-md);
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  transition: var(--mt-transition);
+}
+
+.availability-today-card:hover {
+  box-shadow: var(--mt-shadow-sm);
+  border-color: var(--mt-accent-primary-light);
+}
+
+.availability-today-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.availability-today-icon {
+  font-size: 1.2rem;
+}
+
+.availability-today-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--mt-text-primary);
+}
+
+.availability-today-count {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--mt-accent-success);
+  background: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.availability-today-slots {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.availability-today-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--mt-bg-accent);
+  color: var(--mt-text-secondary);
+}
+
 /* ========== SEARCH & FILTER BAR ========== */
 .filter-bar {
   display: flex;
