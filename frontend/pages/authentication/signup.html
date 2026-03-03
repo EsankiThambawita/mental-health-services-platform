@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Sign Up</h1>
+    <form id="signupForm">
+      <div class="form-group">
+        <label for="username">Username*</label>
+        <input type="text" id="username" required placeholder="Enter your username">
+      </div>
+      <div class="form-group">
+        <label for="email">Email*</label>
+        <input type="email" id="email" required placeholder="Enter your email">
+      </div>
+      <div class="form-group">
+        <label for="password">Password*</label>
+        <input type="password" id="password" required placeholder="Enter your password">
+      </div>
+      <div class="form-group">
+        <label for="role">Role*</label>
+        <select id="role" required>
+          <option value="">Select Role</option>
+          <option value="Counselor">Counselor</option>
+          <option value="Patient">Patient</option>
+        </select>
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="signin.html">Sign In</a></p>
+  </div>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        role: document.getElementById('role').value
+      };
+
+      try {
+        const res = await fetch('http://localhost:8082/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) throw new Error('Sign up failed');
+        alert('Sign up successful! Please sign in.');
+        window.location.href = 'signin.html';
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  </script>
+</body>
+</html>
