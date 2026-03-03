@@ -8,20 +8,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
-/**
- * Configuration for Swagger API documentation
- * This makes our API easier to test and understand
- */
+// Setup Swagger/OpenAPI documentation
 @Configuration
 public class OpenApiConfig {
 
-    /**
-     * Creates the OpenAPI configuration
-     * This sets up the basic information shown in Swagger UI
-     */
+    // Configure OpenAPI info
     @Bean
     public OpenAPI customOpenAPI() {
-        // Create server info with context path
         Server server = new Server();
         server.setUrl("http://localhost:8081/api");
         server.setDescription("Local development server");
