@@ -1,29 +1,17 @@
-package com.nsbm.health.appointment.model;
+package com.nsbm.health.appointment.dto;
 
+import com.nsbm.health.appointment.model.AppointmentStatus;
 import com.nsbm.health.appointment.util.ToStringUtil;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * MongoDB document representing a booked appointment.
- * availabilityId carries a unique index to prevent double-booking at DB level.
- */
-@Document(collection = "appointments")
-public class Appointment {
+/** Response DTO returned to API consumers for all appointment endpoints. */
+public class AppointmentResponse {
 
-    @Id
     private String id;
-
-    @Indexed(unique = true)
     private String availabilityId;
-
     private String userId;
     private String counselorId;
     private LocalDate date;
@@ -31,21 +19,17 @@ public class Appointment {
     private LocalTime endTime;
     private AppointmentStatus status;
     private String cancelReason;
-
-    @CreatedDate
     private Instant createdAt;
-
-    @LastModifiedDate
     private Instant updatedAt;
 
-    /** Required by Spring Data MongoDB for deserialization. */
-    public Appointment() {
+    public AppointmentResponse() {
     }
 
-    /** Full constructor for creating a new appointment. */
-    public Appointment(String availabilityId, String userId, String counselorId,
-                       LocalDate date, LocalTime startTime, LocalTime endTime,
-                       AppointmentStatus status) {
+    public AppointmentResponse(String id, String availabilityId, String userId,
+                               String counselorId, LocalDate date, LocalTime startTime,
+                               LocalTime endTime, AppointmentStatus status,
+                               String cancelReason, Instant createdAt, Instant updatedAt) {
+        this.id = id;
         this.availabilityId = availabilityId;
         this.userId = userId;
         this.counselorId = counselorId;
@@ -53,6 +37,9 @@ public class Appointment {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
+        this.cancelReason = cancelReason;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public String getId() { return id; }

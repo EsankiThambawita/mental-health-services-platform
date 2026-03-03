@@ -1,0 +1,208 @@
+:root{
+    --bg:#0b1220;
+    --card:#0f1a2b;
+    --muted:#9fb0c9;
+    --text:#e6eefc;
+    --border:#1d2a44;
+    --accent:#5b8cff;
+    --danger:#ff5b6b;
+    --ok:#32d583;
+    --warn:#fdb022;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius: 14px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background: radial-gradient(1200px 800px at 20% 0%, #132447 0%, var(--bg) 55%);
+    color:var(--text);
+}
+
+.container{
+    width:min(1100px, 92vw);
+    margin:0 auto;
+    padding:18px 0;
+}
+
+.topbar{
+    border-bottom:1px solid var(--border);
+    background: rgba(10,18,34,.6);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top:0;
+    z-index:10;
+}
+
+.brand{
+    display:flex;
+    gap:14px;
+    align-items:center;
+}
+
+.logo{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background: linear-gradient(135deg, var(--accent), #9b5bff);
+    font-weight:800;
+    box-shadow: var(--shadow);
+}
+
+h1{margin:0; font-size:18px}
+h2{margin:0 0 6px; font-size:18px}
+p{margin:0}
+
+.muted{color:var(--muted)}
+code{
+    background: rgba(255,255,255,.06);
+    padding:2px 6px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.env{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+.env label{font-size:12px; color:var(--muted)}
+.env input{
+    width:260px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.04);
+    color:var(--text);
+    outline:none;
+}
+
+.card{
+    background: rgba(15,26,43,.78);
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    padding:16px;
+    margin:16px 0;
+    box-shadow: var(--shadow);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+    margin-top:12px;
+}
+
+.field label{
+    display:block;
+    font-size:12px;
+    color: var(--muted);
+    margin-bottom:6px;
+}
+
+.field input, .field select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    outline:none;
+}
+
+.actions{
+    grid-column: 1 / -1;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:6px;
+}
+
+.btn{
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.05);
+    color: var(--text);
+    padding:10px 12px;
+    border-radius:12px;
+    cursor:pointer;
+}
+.btn:hover{background: rgba(255,255,255,.08)}
+.btn.small{padding:8px 10px; font-size:12px}
+.btn.primary{border-color: rgba(91,140,255,.5); background: rgba(91,140,255,.18)}
+.btn.danger{border-color: rgba(255,91,107,.5); background: rgba(255,91,107,.16)}
+
+.result{
+    margin-top:14px;
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    overflow:hidden;
+    background: rgba(0,0,0,.18);
+}
+.result-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+}
+.pill{
+    font-size:12px;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    color: var(--muted);
+}
+.pill.ok{color: var(--ok); border-color: rgba(50,213,131,.35)}
+.pill.warn{color: var(--warn); border-color: rgba(253,176,34,.35)}
+.pill.bad{color: var(--danger); border-color: rgba(255,91,107,.35)}
+
+pre{
+    margin:0;
+    padding:12px;
+    max-height: 240px;
+    overflow:auto;
+    font-size:12px;
+    line-height:1.4;
+}
+
+.table-wrap{
+    margin-top:12px;
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    overflow:auto;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width: 900px;
+}
+thead th{
+    text-align:left;
+    font-size:12px;
+    color: var(--muted);
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+    background: rgba(255,255,255,.03);
+}
+tbody td{
+    padding:10px 12px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    font-size:12px;
+    vertical-align:top;
+}
+tbody tr:hover{background: rgba(255,255,255,.03)}
+
+.footer{
+    padding:18px 0 30px;
+    text-align:center;
+}
+
+@media (max-width: 780px){
+    .grid{grid-template-columns: 1fr}
+    .env{display:none}
+}
