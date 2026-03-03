@@ -11,9 +11,5 @@ import java.util.List;
 @Repository
 public interface ResourceCategoryRepository extends MongoRepository<ResourceCategory, String> {
 
-    List<ResourceCategory> findByIsActiveTrue();
-
     List<ResourceCategory> findByIsActiveTrueOrderByDisplayOrder();
-
-    List<ResourceCategory> findByTags(String tag);
 }

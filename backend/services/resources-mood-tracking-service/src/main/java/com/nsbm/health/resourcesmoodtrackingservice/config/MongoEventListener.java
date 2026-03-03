@@ -8,9 +8,7 @@ import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventLis
 import org.springframework.data.mongodb.core.mapping.event.BeforeConvertEvent;
 import org.springframework.stereotype.Component;
 
-/**
- * MongoDB Event Listener for automatic timestamp management
- */
+// Auto-manage timestamps on MongoDB save
 @Component
 public class MongoEventListener extends AbstractMongoEventListener<Object> {
 
