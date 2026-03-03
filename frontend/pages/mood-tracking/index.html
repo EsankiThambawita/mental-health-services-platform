@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resources & Mood Tracking | Mental Health Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/mood-tracking.css">
+</head>
+<body>
+
+<!-- Toast Notifications -->
+<div id="toastContainer" class="toast-container"></div>
+
+<div class="app-container">
+
+  <!-- ==================== NAVIGATION ==================== -->
+  <nav class="nav-bar">
+    <div class="nav-brand">
+      <span class="nav-brand-icon">🧠</span>
+      <div>
+        <h1>Mood & Resources</h1>
+        <span class="nav-subtitle">Mental Health Tracking Platform</span>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="mood">😊 Mood</button>
+      <button class="nav-tab" data-tab="analytics">📊 Analytics</button>
+      <button class="nav-tab" data-tab="resources">📚 Resources</button>
+      <button class="nav-tab" data-tab="categories">🏷️ Categories</button>
+    </div>
+
+    <div class="user-id-input">
+      <label for="userId">User ID</label>
+      <input type="text" id="userId" placeholder="e.g., user123">
+    </div>
+  </nav>
+
+  <!-- ==================== MOOD TRACKING TAB ==================== -->
+  <div id="tab-mood" class="tab-content active">
+
+    <!-- Log Mood Entry -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 id="moodFormTitle">How are you feeling?</h2>
+          <p>Rate your mood and track your emotional well-being</p>
+        </div>
+      </div>
+
+      <form id="moodEntryForm">
+        <!-- Mood Level Selector -->
+        <div class="form-group">
+          <label>Mood Level (1 = Very Low, 10 = Excellent)</label>
+          <div id="moodSelector" class="mood-selector"></div>
+          <div class="mood-labels">
+            <span>😢 Very Low</span>
+            <span>😐 Neutral</span>
+            <span>😊 Excellent</span>
+          </div>
+        </div>
+
+        <!-- Mood Category -->
+        <div class="form-group">
+          <label>How would you describe your mood?</label>
+          <div id="categoryPills" class="category-pills"></div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+          <label for="moodNotes">Notes (optional)</label>
+          <textarea id="moodNotes" placeholder="What's on your mind? Any triggers or thoughts you'd like to record..."></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary" id="moodSubmitBtn">💾 Save Mood Entry</button>
+          <button type="button" class="btn btn-outline hidden" id="cancelEditBtn" onclick="cancelEdit()">Cancel Edit</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Mood Entries List -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Your Mood Journal</h2>
+          <p>Recent mood entries sorted by newest first</p>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="loadMoodEntries()">🔄 Refresh</button>
+      </div>
+
+      <div id="moodEntriesLoading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Loading your entries...</p>
+      </div>
+
+      <div id="moodEntriesEmpty" class="empty-state hidden">
+        <div class="empty-icon">📝</div>
+        <h3>No mood entries yet</h3>
+        <p>Start tracking your mood by logging your first entry above!</p>
+      </div>
+
+      <div id="moodEntriesList" class="entries-grid"></div>
+    </div>
+  </div>
+
+  <!-- ==================== ANALYTICS TAB ==================== -->
+  <div id="tab-analytics" class="tab-content">
+
+    <!-- Statistics -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Mood Statistics</h2>
+          <p>Overview of your mood data</p>
+        </div>
+        <div class="btn-group" style="align-items:center;">
+          <select id="analyticsDateRange" class="filter-select">
+            <option value="7d">Last 7 Days</option>
+            <option value="30d" selected>Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+            <option value="1y">Last Year</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="statsGrid" class="stats-grid">
+        <div class="empty-state"><p>Enter your User ID and data will load automatically.</p></div>
+      </div>
+
+      <div id="moodDistribution" class="mood-distribution"></div>
+    </div>
+
+    <!-- Generate Summaries -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Generate Summaries</h2>
+          <p>Create aggregated mood reports</p>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-primary" id="generateDailyBtn">📅 Daily</button>
+          <button class="btn btn-sm btn-primary" id="generateWeeklyBtn">📆 Weekly</button>
+          <button class="btn btn-sm btn-primary" id="generateMonthlyBtn">🗓️ Monthly</button>
+        </div>
+      </div>
+
+      <div id="summariesList">
+        <div class="empty-state"><p>No summaries generated yet.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== RESOURCES TAB ==================== -->
+  <div id="tab-resources" class="tab-content">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Mental Health Resources</h2>
+          <p>Browse articles, exercises, techniques and crisis information</p>
+        </div>
+        <button class="btn btn-primary" id="addResourceBtn">+ Add Resource</button>
+      </div>
+
+      <!-- Search & Filter -->
+      <div class="filter-bar">
+        <input type="text" id="resourceSearchInput" class="search-input" placeholder="Search resources...">
+        <select id="resourceCategoryFilter" class="filter-select">
+          <option value="">All Categories</option>
+        </select>
+        <select id="resourceTypeFilter" class="filter-select">
+          <option value="">All Types</option>
+          <option value="ARTICLE">Article</option>
+          <option value="EXERCISE">Exercise</option>
+          <option value="TECHNIQUE">Technique</option>
+          <option value="CRISIS_INFO">Crisis Info</option>
+        </select>
+        <select id="resourceDifficultyFilter" class="filter-select">
+          <option value="">All Difficulties</option>
+          <option value="EASY">Easy</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HARD">Hard</option>
+        </select>
+      </div>
+
+      <div id="resourcesLoading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Loading resources...</p>
+      </div>
+
+      <div id="resourcesEmpty" class="empty-state hidden">
+        <div class="empty-icon">📚</div>
+        <h3>No resources found</h3>
+        <p>Add your first resource or adjust your filters.</p>
+      </div>
+
+      <div id="resourcesList"></div>
+    </div>
+  </div>
+
+  <!-- ==================== CATEGORIES TAB ==================== -->
+  <div id="tab-categories" class="tab-content">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Resource Categories</h2>
+          <p>Organize resources into meaningful groups</p>
+        </div>
+        <button class="btn btn-primary" id="addCategoryBtn">+ Add Category</button>
+      </div>
+
+      <div id="categoriesLoading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Loading categories...</p>
+      </div>
+
+      <div id="categoriesEmpty" class="empty-state hidden">
+        <div class="empty-icon">🏷️</div>
+        <h3>No categories yet</h3>
+        <p>Create your first resource category to organize your library.</p>
+      </div>
+
+      <div id="categoriesList"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== RESOURCE CREATE/EDIT MODAL ==================== -->
+<div id="resourceModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="resourceModalTitle">Add New Resource</h2>
+      <button class="modal-close" id="closeResourceModal">&times;</button>
+    </div>
+    <form id="resourceForm">
+      <div class="form-group">
+        <label for="resTitle">Title *</label>
+        <input type="text" id="resTitle" required placeholder="e.g., Deep Breathing Technique">
+      </div>
+
+      <div class="form-group">
+        <label for="resDescription">Description *</label>
+        <textarea id="resDescription" required placeholder="Brief summary of this resource"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="resContent">Full Content</label>
+        <textarea id="resContent" placeholder="Detailed content of the resource..." style="min-height:120px;"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="resCategory">Category *</label>
+          <select id="resCategory" required class="filter-select">
+            <option value="">Select category</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="resType">Type</label>
+          <select id="resType">
+            <option value="">Select type</option>
+            <option value="ARTICLE">Article</option>
+            <option value="EXERCISE">Exercise</option>
+            <option value="TECHNIQUE">Technique</option>
+            <option value="CRISIS_INFO">Crisis Info</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="resDifficulty">Difficulty</label>
+          <select id="resDifficulty">
+            <option value="">Select difficulty</option>
+            <option value="EASY">Easy</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HARD">Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="resDuration">Duration (minutes)</label>
+          <input type="number" id="resDuration" placeholder="e.g., 15" min="1">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="resAuthor">Author</label>
+          <input type="text" id="resAuthor" placeholder="e.g., Dr. Smith">
+        </div>
+        <div class="form-group">
+          <label for="resSourceUrl">Source URL</label>
+          <input type="url" id="resSourceUrl" placeholder="https://example.com/article">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="resTags">Tags (comma-separated)</label>
+        <input type="text" id="resTags" placeholder="e.g., meditation, anxiety, breathing">
+      </div>
+
+      <div class="form-group">
+        <label for="resMoodLevels">Recommended Mood Levels (comma-separated, 1-10)</label>
+        <input type="text" id="resMoodLevels" placeholder="e.g., 1, 2, 3, 4, 5">
+      </div>
+
+      <div class="btn-group" style="justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-outline" id="cancelResourceBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="resourceSubmitBtn">Create Resource</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== RESOURCE VIEW MODAL ==================== -->
+<div id="resourceViewModal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <h2>Resource Details</h2>
+      <button class="modal-close" onclick="document.getElementById('resourceViewModal').classList.remove('open')">&times;</button>
+    </div>
+    <div id="resourceViewContent"></div>
+  </div>
+</div>
+
+<!-- ==================== CATEGORY CREATE/EDIT MODAL ==================== -->
+<div id="categoryModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="categoryModalTitle">Add New Category</h2>
+      <button class="modal-close" id="closeCategoryModal">&times;</button>
+    </div>
+    <form id="categoryForm">
+      <div class="form-group">
+        <label for="catName">Category Name *</label>
+        <input type="text" id="catName" required placeholder="e.g., Relaxation Techniques">
+      </div>
+
+      <div class="form-group">
+        <label for="catDescription">Description</label>
+        <textarea id="catDescription" placeholder="What types of resources belong in this category?"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="catIcon">Icon (emoji)</label>
+          <input type="text" id="catIcon" placeholder="e.g., 🧘">
+        </div>
+        <div class="form-group">
+          <label for="catColor">Color</label>
+          <input type="color" id="catColor" value="#6366f1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="catDisplayOrder">Display Order</label>
+        <input type="number" id="catDisplayOrder" placeholder="e.g., 1" min="0">
+      </div>
+
+      <div class="form-group">
+        <label for="catTags">Tags (comma-separated)</label>
+        <input type="text" id="catTags" placeholder="e.g., relaxation, breathing, wellness">
+      </div>
+
+      <div class="btn-group" style="justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-outline" id="cancelCategoryBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="categorySubmitBtn">Create Category</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="../../js/mood-tracking-config.js"></script>
+<script src="../../js/mood-tracking.js"></script>
+</body>
+</html>
+
