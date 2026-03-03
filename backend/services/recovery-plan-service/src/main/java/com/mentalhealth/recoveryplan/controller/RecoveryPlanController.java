@@ -24,7 +24,7 @@ import com.mentalhealth.recoveryplan.service.RecoveryPlanService;
 import jakarta.validation.Valid;
 
 // RecoveryPlanController - REST API endpoints
-// http://localhost:8082/api/recovery-plans
+// http://localhost:8082/api/recovery-plans 
 
 @RestController
 @RequestMapping("/api/recovery-plans")
