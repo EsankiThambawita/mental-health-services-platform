@@ -1,4 +1,4 @@
-// Universal Sidebar - auto-injects into every page
+// sidebar that shows on every page
 (function () {
   const pages = [
     { name: 'Mood & Resources', icon: '🧠', path: '/pages/mood-tracking/index.html' },
@@ -8,17 +8,16 @@
     { name: 'Recovery (Patient)', icon: '💚', path: '/pages/recovery-plans/patient.html' },
   ];
 
-  // Figure out which page we're on
+  // check which page we're on so we can highlight it
   const currentPath = window.location.pathname;
   function isActive(pagePath) {
     return currentPath.endsWith(pagePath) || currentPath.endsWith(pagePath.replace('/index.html', '/'));
   }
 
-  // Build sidebar HTML
+  // build the nav links
   let linksHtml = '';
   pages.forEach(p => {
     const active = isActive(p.path) ? ' active' : '';
-    // All pages are 2 levels deep from frontend root, so ../../ gets us there
     const href = '../../' + p.path.replace(/^\//, '');
     linksHtml += `<a class="sidebar-link${active}" href="${href}">
       <span class="sidebar-link-icon">${p.icon}</span>
@@ -37,8 +36,7 @@
       ${linksHtml}
     </nav>`;
 
-  // Inject at the start of body
+  // stick it at the top of the page
   document.body.prepend(sidebar);
   document.body.classList.add('has-sidebar');
 })();
-
