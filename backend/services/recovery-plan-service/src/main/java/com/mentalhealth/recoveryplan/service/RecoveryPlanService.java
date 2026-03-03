@@ -35,25 +35,22 @@ public class RecoveryPlanService {
     // Onlyr counselors can create plans. @param request - plan details from api
     public RecoveryPlanResponse createPlan(CreateRecoveryPlanRequest request) {
         boolean hasActivePlan = repository.existsByPatientIdAndStatus(
-            request.getPatientId(),
-            PlanStatus.ACTIVE
-        );
+                request.getPatientId(),
+                PlanStatus.ACTIVE);
 
         if (hasActivePlan) {
             throw new InvalidOperationException(
-                "Patient already has an active recovery plan."
-            );
+                    "Patient already has an active recovery plan.");
         }
 
         // Entity from DTO
         RecoveryPlan plan = new RecoveryPlan(
-            request.getPatientId(),
-            request.getCounselorId(),
-            request.getTitle(),
-            request.getDescription(),
-            request.getStartDate(),
-            request.getEndDate()
-        );
+                request.getPatientId(),
+                request.getCounselorId(),
+                request.getTitle(),
+                request.getDescription(),
+                request.getStartDate(),
+                request.getEndDate());
 
         plan.setAppointmentId(request.getAppointmentId());
 
@@ -66,37 +63,34 @@ public class RecoveryPlanService {
     public List<RecoveryPlanResponse> getPlansByCounselor(String counselorId) {
         List<RecoveryPlan> plans = repository.findByCounselorId(counselorId);
         return plans.stream()
-            .map(this::convertToResponse)
-            .collect(Collectors.toList());
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 
     // Get a specific plan, only the counselor can access
     public RecoveryPlanResponse getPlanByCounselor(String planId, String counselorId) {
         RecoveryPlan plan = repository.findByIdAndCounselorId(planId, counselorId)
-            .orElseThrow(() -> new UnauthorizedAccessException(
-                "You do not have permission to access this plan or it does not exist"
-            ));
-        
+                .orElseThrow(() -> new UnauthorizedAccessException(
+                        "You do not have permission to access this plan or it does not exist"));
+
         return convertToResponse(plan);
     }
 
     // Update plan status
-    public RecoveryPlanResponse updatePlanStatus(String planId, String counselorId, 
-                                                 UpdatePlanStatusRequest request) {
+    public RecoveryPlanResponse updatePlanStatus(String planId, String counselorId,
+            UpdatePlanStatusRequest request) {
         RecoveryPlan plan = repository.findByIdAndCounselorId(planId, counselorId)
                 .orElseThrow(() -> new UnauthorizedAccessException(
-                        "You do not have permission to update this plan or it does not exist"
-                ));
+                        "You do not have permission to update this plan or it does not exist"));
 
         if (plan.getStatus() != PlanStatus.ACTIVE && request.getStatus() == PlanStatus.ACTIVE) {
             throw new InvalidOperationException(
-                    "Cannot reactivate a completed or cancelled plan. Create a new plan instead."
-            );
+                    "Cannot reactivate a completed or cancelled plan. Create a new plan instead.");
         }
 
         plan.setStatus(request.getStatus());
         plan.setUpdatedAt(LocalDateTime.now());
-        
+
         RecoveryPlan updatedPlan = repository.save(plan);
         return convertToResponse(updatedPlan);
     }
@@ -105,14 +99,11 @@ public class RecoveryPlanService {
     public void deletePlan(String planId, String counselorId) {
         RecoveryPlan plan = repository.findByIdAndCounselorId(planId, counselorId)
                 .orElseThrow(() -> new UnauthorizedAccessException(
-                        "You do not have permission to delete this plan or it does not exist"
-                ));
+                        "You do not have permission to delete this plan or it does not exist"));
 
         repository.delete(plan);
     }
 
-
-    
     // Patient Operations
     // Get all plans for a patient
     public List<RecoveryPlanResponse> getPlansByPatient(String patientId) {
@@ -126,9 +117,8 @@ public class RecoveryPlanService {
     public RecoveryPlanResponse getPlanByPatient(String planId, String patientId) {
         RecoveryPlan plan = repository.findByIdAndPatientId(planId, patientId)
                 .orElseThrow(() -> new UnauthorizedAccessException(
-                        "You do not have permission to access this plan or it does not exist"
-                ));
-        
+                        "You do not have permission to access this plan or it does not exist"));
+
         return convertToResponse(plan);
     }
 
@@ -136,8 +126,7 @@ public class RecoveryPlanService {
     public RecoveryPlanResponse completeTask(String planId, String taskId, String patientId) {
         RecoveryPlan plan = repository.findByIdAndPatientId(planId, patientId)
                 .orElseThrow(() -> new UnauthorizedAccessException(
-                        "You dot not have permission to access this plan or it does not exist"
-                ));
+                        "You dot not have permission to access this plan or it does not exist"));
 
         if (plan.getStatus() == PlanStatus.CANCELLED) {
             throw new InvalidOperationException("Cannot complete tasks on a cancelled plan");
@@ -160,14 +149,12 @@ public class RecoveryPlanService {
         return convertToResponse(updatedPlan);
     }
 
-
     // Task Management - Counselor
     // As a new task
     public RecoveryPlanResponse addTask(String planId, String counselorId, CreateTaskRequest request) {
         RecoveryPlan plan = repository.findByIdAndCounselorId(planId, counselorId)
                 .orElseThrow(() -> new UnauthorizedAccessException(
-                        "You do not have permission to modify this plan or it does not exist"
-                ));
+                        "You do not have permission to modify this plan or it does not exist"));
 
         if (plan.getStatus() == PlanStatus.CANCELLED) {
             throw new InvalidOperationException("Cannot add tasks to a cancelled plan");
@@ -180,8 +167,7 @@ public class RecoveryPlanService {
                 taskId,
                 request.getDescription(),
                 request.getDueDate(),
-                request.getCounselorNotes()
-        );
+                request.getCounselorNotes());
 
         plan.getTasks().add(task);
         plan.setUpdatedAt(LocalDateTime.now());
@@ -191,12 +177,11 @@ public class RecoveryPlanService {
     }
 
     // Update an existing task
-    public RecoveryPlanResponse updateTask(String planId, String taskId, String counselorId, 
-                                          CreateTaskRequest request) {
+    public RecoveryPlanResponse updateTask(String planId, String taskId, String counselorId,
+            CreateTaskRequest request) {
         RecoveryPlan plan = repository.findByIdAndCounselorId(planId, counselorId)
                 .orElseThrow(() -> new UnauthorizedAccessException(
-                        "You don't have permission to modify this plan or it doesn't exist"
-                ));
+                        "You don't have permission to modify this plan or it doesn't exist"));
 
         RecoveryTask task = plan.getTasks().stream()
                 .filter(t -> t.getTaskId().equals(taskId))
@@ -216,11 +201,10 @@ public class RecoveryPlanService {
     public RecoveryPlanResponse deleteTask(String planId, String taskId, String counselorId) {
         RecoveryPlan plan = repository.findByIdAndCounselorId(planId, counselorId)
                 .orElseThrow(() -> new UnauthorizedAccessException(
-                        "You don't have permission to modify this plan or it doesn't exist"
-                ));
+                        "You don't have permission to modify this plan or it doesn't exist"));
 
         boolean removed = plan.getTasks().removeIf(task -> task.getTaskId().equals(taskId));
-        
+
         if (!removed) {
             throw new ResourceNotFoundException("Task", "taskId", taskId);
         }
@@ -231,15 +215,14 @@ public class RecoveryPlanService {
         return convertToResponse(updatedPlan);
     }
 
-
     // Helper Methods
     // convertToResponse
-    private RecoveryPlanResponse convertToResponse(RecoveryPlan plan) {
+    public RecoveryPlanResponse convertToResponse(RecoveryPlan plan) {
         List<TaskResponse> taskResponses = plan.getTasks().stream()
-            .map(this::convertTaskToResponse)
-            .collect(Collectors.toList());
+                .map(this::convertTaskToResponse)
+                .collect(Collectors.toList());
 
-            return new RecoveryPlanResponse(
+        return new RecoveryPlanResponse(
                 plan.getId(),
                 plan.getPatientId(),
                 plan.getCounselorId(),
@@ -251,8 +234,7 @@ public class RecoveryPlanService {
                 plan.getStatus(),
                 taskResponses,
                 plan.getCreatedAt(),
-                plan.getUpdatedAt()
-            );
+                plan.getUpdatedAt());
     }
 
     // converTaskToResponse
@@ -264,7 +246,6 @@ public class RecoveryPlanService {
                 task.isCompleted(),
                 task.getCompletedAt(),
                 task.getCounselorNotes(),
-                task.getCreatedAt()
-        );
+                task.getCreatedAt());
     }
 }
