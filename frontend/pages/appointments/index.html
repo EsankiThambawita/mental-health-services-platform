@@ -5,17 +5,21 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Appointment Booking</title>
     <link rel="stylesheet" href="../../css/appointments.css" />
+    <link rel="stylesheet" href="../../css/sidebar.css" />
 </head>
+
+
 <body>
 <header class="topbar">
-    <div class="container">
+    <div class="container topbar-inner">
         <div class="brand">
             <div class="logo">AB</div>
             <div>
-                <h1>Appointment Booking Service</h1>
-                <p class="muted">Book and Manage Your Appointments</p>
+                <h1>Appointment Booking</h1>
+                <p class="muted">Book, reschedule, cancel and view appointments</p>
             </div>
         </div>
+
         <div class="env">
             <label for="apiBase">API Base</label>
             <input id="apiBase" type="text" value="http://localhost:8083" />
@@ -24,14 +28,19 @@
 </header>
 
 <main class="container">
+    <div class="notice" id="banner" hidden></div>
+
     <section class="card">
-        <h2>Book Appointment</h2>
-        <p class="muted">Calls <code>POST /api/v1/appointments</code></p>
+        <div class="card-head">
+            <h2>Book an appointment</h2>
+            <p class="muted">Choose a slot and book it</p>
+        </div>
 
         <form id="bookForm" class="grid">
             <div class="field">
                 <label for="availabilityId">Availability ID</label>
-                <input id="availabilityId" type="text" placeholder="e.g. 69a5ed35a8ccad1f6ca94871" required />
+                <input id="availabilityId" type="text" placeholder="Paste slot id from Availability service" required />
+                <small class="hint">Example: 69a5ed35a8ccad1f6ca94871</small>
             </div>
 
             <div class="field">
@@ -45,27 +54,26 @@
             </div>
         </form>
 
-        <div class="result">
-            <div class="result-head">
-                <span class="pill" id="bookStatus">Idle</span>
-                <button class="btn small" id="copyBookJson" type="button">Copy JSON</button>
-            </div>
-            <pre id="bookOutput">{}</pre>
+        <div class="feedback">
+            <div class="status" id="bookStatus">Ready</div>
+            <div class="summary" id="bookSummary">Fill the form and click Book.</div>
         </div>
     </section>
 
     <section class="card">
-        <h2>Cancel Appointment</h2>
-        <p class="muted">Calls <code>PATCH /api/v1/appointments/{id}/cancel</code></p>
+        <div class="card-head">
+            <h2>Cancel an appointment</h2>
+            <p class="muted">Cancel if you can’t attend</p>
+        </div>
 
         <form id="cancelForm" class="grid">
             <div class="field">
                 <label for="cancelAppointmentId">Appointment ID</label>
-                <input id="cancelAppointmentId" type="text" placeholder="paste appointment id from booking response" required />
+                <input id="cancelAppointmentId" type="text" placeholder="Appointment id (from booking or list)" required />
             </div>
 
             <div class="field">
-                <label for="cancelReason">Cancel Reason (optional)</label>
+                <label for="cancelReason">Reason (optional)</label>
                 <input id="cancelReason" type="text" placeholder="e.g. Not available" />
             </div>
 
@@ -75,28 +83,27 @@
             </div>
         </form>
 
-        <div class="result">
-            <div class="result-head">
-                <span class="pill" id="cancelStatus">Idle</span>
-                <button class="btn small" id="copyCancelJson" type="button">Copy JSON</button>
-            </div>
-            <pre id="cancelOutput">{}</pre>
+        <div class="feedback">
+            <div class="status" id="cancelStatus">Ready</div>
+            <div class="summary" id="cancelSummary">Enter an appointment id and click Cancel.</div>
         </div>
     </section>
 
     <section class="card">
-        <h2>Reschedule Appointment</h2>
-        <p class="muted">Calls <code>PATCH /api/v1/appointments/{id}/reschedule</code></p>
+        <div class="card-head">
+            <h2>Reschedule an appointment</h2>
+            <p class="muted">Move to a different slot</p>
+        </div>
 
         <form id="rescheduleForm" class="grid">
             <div class="field">
                 <label for="rescheduleAppointmentId">Appointment ID</label>
-                <input id="rescheduleAppointmentId" type="text" placeholder="paste appointment id" required />
+                <input id="rescheduleAppointmentId" type="text" placeholder="Appointment id" required />
             </div>
 
             <div class="field">
                 <label for="newAvailabilityId">New Availability ID</label>
-                <input id="newAvailabilityId" type="text" placeholder="new slot id from availability service" required />
+                <input id="newAvailabilityId" type="text" placeholder="New slot id" required />
             </div>
 
             <div class="actions">
@@ -105,22 +112,21 @@
             </div>
         </form>
 
-        <div class="result">
-            <div class="result-head">
-                <span class="pill" id="rescheduleStatus">Idle</span>
-                <button class="btn small" id="copyRescheduleJson" type="button">Copy JSON</button>
-            </div>
-            <pre id="rescheduleOutput">{}</pre>
+        <div class="feedback">
+            <div class="status" id="rescheduleStatus">Ready</div>
+            <div class="summary" id="rescheduleSummary">Enter the appointment id and a new slot id.</div>
         </div>
     </section>
 
     <section class="card">
-        <h2>Get Appointments</h2>
-        <p class="muted">Calls <code>GET /api/v1/appointments?userId=</code> or <code>?counselorId=</code></p>
+        <div class="card-head">
+            <h2>My appointments</h2>
+            <p class="muted">View appointments by user or counselor</p>
+        </div>
 
         <form id="getForm" class="grid">
             <div class="field">
-                <label for="queryType">Query Type</label>
+                <label for="queryType">Search by</label>
                 <select id="queryType">
                     <option value="userId" selected>userId</option>
                     <option value="counselorId">counselorId</option>
@@ -133,45 +139,47 @@
             </div>
 
             <div class="actions">
-                <button class="btn" type="submit">Fetch</button>
+                <button class="btn" type="submit">Search</button>
                 <button class="btn" type="button" id="clearGet">Clear</button>
             </div>
         </form>
 
-        <div class="result">
-            <div class="result-head">
-                <span class="pill" id="getStatus">Idle</span>
-                <button class="btn small" id="copyGetJson" type="button">Copy JSON</button>
-            </div>
-            <pre id="getOutput">[]</pre>
+        <div class="feedback">
+            <div class="status" id="getStatus">Ready</div>
+            <div class="summary" id="getSummary">Search to see your appointments below.</div>
         </div>
 
-        <div class="table-wrap">
+        <div class="table-wrap" aria-live="polite">
             <table id="appointmentsTable">
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Availability</th>
-                    <th>User</th>
-                    <th>Counselor</th>
                     <th>Date</th>
-                    <th>Start</th>
-                    <th>End</th>
+                    <th>Time</th>
+                    <th>Counselor</th>
                     <th>Status</th>
+                    <th>Appointment ID</th>
                 </tr>
                 </thead>
                 <tbody></tbody>
             </table>
+
+            <div class="empty" id="emptyState" hidden>
+                No appointments found.
+            </div>
         </div>
+
+        <details class="debug">
+            <summary>Debug (raw JSON)</summary>
+            <pre id="debugJson">[]</pre>
+        </details>
     </section>
 
-    <footer class="footer">
-      <span class="muted">
-        Tip: if you get CORS errors opening this file directly, run a simple local server (see below).
-      </span>
+    <footer class="footer muted">
+        Tip: open this page via a local server (not file://) to avoid browser security issues.
     </footer>
 </main>
 
 <script src="../../js/appointments.js"></script>
+<script src="../../js/sidebar.js"></script>
 </body>
 </html>
