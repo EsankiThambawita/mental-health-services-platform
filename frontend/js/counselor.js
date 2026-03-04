@@ -1,348 +1,385 @@
-// Counselor Recovery Plans - JavaScript (Rewritten for Authenticated Backend)
+// Counselor Recovery Plans JavaScript
 
-// ========== STATE ==========
-let currentPlanId = '';
-let currentTaskId = '';
-let plans = [];
+checkAuth(); // Ensure user is logged in
 
-// ========== INITIALIZATION ==========
-document.addEventListener('DOMContentLoaded', () => {
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (!user || user.role !== 'Counselor') {
-    alert('You must be logged in as a counselor.');
-    window.location.href = '/pages/authentication/signin.html';
-    return;
+const RECOVERY_API = 'http://localhost:8083/api/recovery-plans';
+const token = getAuthHeader();
+
+// Display user info
+document.getElementById('userName').textContent = localStorage.getItem('name');
+document.getElementById('userEmail').textContent = localStorage.getItem('email');
+
+const plansContainer = document.getElementById('plansContainer');
+const loadingPlans = document.getElementById('loadingPlans');
+const emptyPlans = document.getElementById('emptyPlans');
+const createPlanForm = document.getElementById('createPlanForm');
+
+// Create Recovery Plan
+createPlanForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const email = document.getElementById('patientEmail').value;
+  const title = document.getElementById('planTitle').value;
+  const desc = document.getElementById('planDesc').value;
+
+  console.log('Creating plan for:', email); // Debug log
+
+  try {
+    // Step 1: Get patientId from email
+    console.log('Fetching patient ID...');
+    const userRes = await fetch(`http://localhost:8084/api/auth/userIdByEmail?email=${encodeURIComponent(email)}`, {
+      headers: { 'Authorization': token }
+    });
+
+    console.log('User lookup response status:', userRes.status);
+
+    if (!userRes.ok) {
+      const errorText = await userRes.text();
+      console.error('User lookup failed:', errorText);
+      throw new Error('Patient not found with that email');
+    }
+
+    const userData = await userRes.json();
+    console.log('User data:', userData);
+    
+    // Verify it's a patient
+    if (userData.role !== 'PATIENT') {
+      throw new Error('The email provided is not a patient account');
+    }
+
+    const patientId = userData.userId;
+    console.log('Patient ID:', patientId);
+
+    // Step 2: Create the recovery plan
+    const now = new Date().toISOString();
+    const threeMonths = new Date();
+    threeMonths.setMonth(threeMonths.getMonth() + 3);
+
+    const planData = {
+      patientId,
+      counselorId: localStorage.getItem('userId'), // Will be overridden by backend from token
+      title,
+      description: desc,
+      startDate: now,
+      endDate: threeMonths.toISOString()
+    };
+
+    console.log('Creating plan with data:', planData);
+
+    const response = await fetch(RECOVERY_API, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify(planData)
+    });
+
+    console.log('Create plan response status:', response.status);
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Create plan failed:', errText);
+      let errData;
+      try {
+        errData = JSON.parse(errText);
+      } catch {
+        errData = { message: errText };
+      }
+      throw new Error(errData.message || 'Failed to create plan');
+    }
+
+    const result = await response.json();
+    console.log('Plan created successfully:', result);
+
+    showAlert('Recovery plan created successfully!', 'success');
+    createPlanForm.reset();
+    loadPlans();
+    
+  } catch (err) {
+    console.error('Error creating plan:', err);
+    showAlert(err.message, 'error');
   }
-
-  // Initialize default dates
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  document.getElementById('startDate').value = now.toISOString().slice(0, 16);
-
-  const threeMonthsLater = new Date();
-  threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
-  threeMonthsLater.setMinutes(threeMonthsLater.getMinutes() - threeMonthsLater.getTimezoneOffset());
-  document.getElementById('endDate').value = threeMonthsLater.toISOString().slice(0, 16);
-
-  setupEventListeners();
-  loadPlans();
 });
 
-// ========== EVENT LISTENERS ==========
-function setupEventListeners() {
-  document.getElementById('toggleFormBtn').addEventListener('click', toggleCreateForm);
-  document.getElementById('createPlanForm').addEventListener('submit', handleCreatePlan);
-  document.getElementById('refreshBtn').addEventListener('click', loadPlans);
-  document.getElementById('closeModal').addEventListener('click', closeTaskModal);
-  document.getElementById('taskModal').addEventListener('click', e => {
-    if (e.target.id === 'taskModal') closeTaskModal();
-  });
-  document.getElementById('addTaskForm').addEventListener('submit', handleAddTask);
-  document.getElementById('updateStatusBtn').addEventListener('click', handleUpdateStatus);
-  document.getElementById('deletePlanBtn').addEventListener('click', handleDeletePlan);
-  document.getElementById('closeEditModal').addEventListener('click', closeEditTaskModal);
-  document.getElementById('editTaskModal').addEventListener('click', e => {
-    if (e.target.id === 'editTaskModal') closeEditTaskModal();
-  });
-  document.getElementById('editTaskForm').addEventListener('submit', handleEditTask);
-}
-
-// ========== TOGGLE CREATE FORM ==========
-function toggleCreateForm() {
-  const form = document.getElementById('createPlanForm');
-  const btn = document.getElementById('toggleFormBtn');
-  form.classList.toggle('hidden');
-  btn.textContent = form.classList.contains('hidden') ? 'Show Form' : 'Hide Form';
-}
-
-// ========== LOAD PLANS ==========
+// Load counselor's recovery plans
 async function loadPlans() {
-  const loadingEl = document.getElementById('loadingPlans');
-  const emptyStateEl = document.getElementById('emptyState');
-  const plansListEl = document.getElementById('plansList');
-
-  loadingEl.classList.remove('hidden');
-  emptyStateEl.classList.add('hidden');
-  plansListEl.innerHTML = '';
-
-  const user = JSON.parse(localStorage.getItem('user'));
-
+  loadingPlans.classList.remove('hidden');
+  emptyPlans.classList.add('hidden');
+  plansContainer.innerHTML = '';
+  
   try {
-    plans = await API_CONFIG.get('/counselor', {
-      headers: { 'user-id': user.id }
+    const response = await fetch(`${RECOVERY_API}/counselor/plans`, {
+      headers: { 'Authorization': token }
     });
 
-    loadingEl.classList.add('hidden');
+    if (!response.ok) {
+      throw new Error('Failed to fetch plans');
+    }
 
-    if (!plans || plans.length === 0) emptyStateEl.classList.remove('hidden');
-    else renderPlans(plans);
-  } catch (error) {
-    loadingEl.classList.add('hidden');
-    showError(error);
-  }
-}
-
-// ========== RENDER PLANS ==========
-function renderPlans(plansList) {
-  const container = document.getElementById('plansList');
-  container.innerHTML = '';
-
-  plansList.forEach(plan => {
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    const statusClass = plan.status === 'ACTIVE' ? 'badge-active' :
-                        plan.status === 'COMPLETED' ? 'badge-completed' :
-                        'badge-cancelled';
+    const plans = await response.json();
+    loadingPlans.classList.add('hidden');
     
-    const taskCount = plan.tasks?.length || 0;
-    const completedTasks = plan.tasks?.filter(t => t.completed).length || 0;
+    if (plans.length === 0) {
+      emptyPlans.classList.remove('hidden');
+      return;
+    }
 
-    card.innerHTML = `
-      <div class="card-header">
-        <div>
-          <div class="card-title">${plan.title}</div>
-          <div class="card-meta">
-            Patient: ${plan.patientId} • Created: ${formatDate(plan.createdAt)}
-          </div>
-        </div>
-        <span class="badge ${statusClass}">${plan.status}</span>
-      </div>
-      <p>${plan.description || 'No description provided.'}</p>
-      <div style="display: flex; gap: 8px; margin-bottom: 8px; font-size: 12px;">
-        <span><strong>Start:</strong> ${formatDate(plan.startDate)}</span>
-        <span><strong>End:</strong> ${formatDate(plan.endDate)}</span>
-      </div>
-      <div style="margin-bottom: 16px; font-size: 14px;">
-        <strong>Tasks:</strong> ${completedTasks}/${taskCount} completed
-      </div>
-      <div class="card-actions">
-        <button class="btn btn-primary btn-small" onclick="openTaskModal('${plan.id}')">Manage Tasks</button>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-// ========== CREATE PLAN ==========
-async function handleCreatePlan(e) {
-  e.preventDefault();
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  const data = {
-    patientId: document.getElementById('patientId').value,
-    title: document.getElementById('title').value,
-    description: document.getElementById('description').value,
-    startDate: document.getElementById('startDate').value,
-    endDate: document.getElementById('endDate').value || null
-  };
-
-  try {
-    await API_CONFIG.post('', data, {
-      headers: { 'user-id': user.id }
-    });
-    showAlert('Recovery plan created successfully!', 'success');
-    document.getElementById('createPlanForm').reset();
-    toggleCreateForm();
-    loadPlans();
-  } catch (error) {
-    showError(error);
+    plans.forEach(plan => renderPlan(plan));
+    
+  } catch (err) {
+    loadingPlans.classList.add('hidden');
+    showAlert(err.message, 'error');
   }
 }
 
-// ========== TASK MODAL ==========
-async function openTaskModal(planId) {
-  currentPlanId = planId;
-  const plan = plans.find(p => p.id === planId);
-  if (!plan) return;
-
-  document.getElementById('modalPlanTitle').textContent = plan.title;
-  document.getElementById('planStatusSelect').value = plan.status;
-
-  const oneWeekLater = new Date();
-  oneWeekLater.setDate(oneWeekLater.getDate() + 7);
-  oneWeekLater.setMinutes(oneWeekLater.getMinutes() - oneWeekLater.getTimezoneOffset());
-  document.getElementById('taskDueDate').value = oneWeekLater.toISOString().slice(0, 16);
-
-  renderTasks(plan.tasks || []);
-  document.getElementById('taskModal').classList.add('active');
+// Render a single plan
+function renderPlan(plan) {
+  const card = document.createElement('div');
+  card.className = 'plan-card';
+  
+  const taskCount = plan.tasks ? plan.tasks.length : 0;
+  const completedTasks = plan.tasks ? plan.tasks.filter(t => t.completed).length : 0;
+  
+  const statusBadge = plan.status === 'ACTIVE' ? 'badge-active' : 
+                      plan.status === 'COMPLETED' ? 'badge-completed' : 'badge-cancelled';
+  
+  card.innerHTML = `
+    <div class="plan-header">
+      <div>
+        <div class="plan-title">${plan.title}</div>
+        <div class="plan-meta">
+          Patient: ${plan.patientEmail || plan.patientId} • 
+          Tasks: ${completedTasks}/${taskCount} completed •
+          Created: ${formatDate(plan.createdAt)}
+        </div>
+      </div>
+      <span class="badge ${statusBadge}">${plan.status}</span>
+    </div>
+    
+    <p style="margin-bottom: 16px;">${plan.description || 'No description'}</p>
+    
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <button onclick="viewPlanDetails('${plan.id}')" class="btn btn-primary btn-small">View Details</button>
+      <button onclick="addTask('${plan.id}')" class="btn btn-success btn-small">Add Task</button>
+      <button onclick="updateStatus('${plan.id}', '${plan.status}')" class="btn btn-secondary btn-small">Update Status</button>
+      <button onclick="deletePlan('${plan.id}')" class="btn btn-danger btn-small">Delete</button>
+    </div>
+    
+    <div id="planDetails${plan.id}" class="hidden" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--neutral-200);">
+      <h3>Tasks</h3>
+      <div id="tasks${plan.id}"></div>
+    </div>
+  `;
+  
+  plansContainer.appendChild(card);
 }
 
-function closeTaskModal() {
-  document.getElementById('taskModal').classList.remove('active');
-  document.getElementById('addTaskForm').reset();
-  currentPlanId = '';
-}
-
-// ========== RENDER TASKS ==========
-function renderTasks(tasks) {
-  const container = document.getElementById('tasksList');
-  const emptyState = document.getElementById('emptyTasks');
-
-  if (!tasks || tasks.length === 0) {
-    emptyState.classList.remove('hidden');
-    container.innerHTML = '';
+// View plan details
+async function viewPlanDetails(planId) {
+  const detailsDiv = document.getElementById(`planDetails${planId}`);
+  
+  if (!detailsDiv.classList.contains('hidden')) {
+    detailsDiv.classList.add('hidden');
     return;
   }
+  
+  try {
+    const response = await fetch(`${RECOVERY_API}/${planId}/counselor`, {
+      headers: { 'Authorization': token }
+    });
 
-  emptyState.classList.add('hidden');
-  container.innerHTML = '';
+    if (!response.ok) throw new Error('Failed to fetch plan details');
 
-  tasks.forEach(task => {
-    const li = document.createElement('li');
-    li.className = `task-item ${task.completed ? 'completed' : ''}`;
-    const dueClass = !task.completed && isOverdue(task.dueDate) ? 'task-overdue' : '';
-    const statusText = task.completed ? `Completed: ${formatDateTime(task.completedAt)}` : `Due: ${formatDate(task.dueDate)}`;
-
-    li.innerHTML = `
-      <div class="task-content" style="flex:1;">
-        <div class="task-description">${task.description}</div>
-        <div class="task-meta">
-          <span class="task-due ${dueClass}">${statusText}</span>
-          ${task.counselorNotes ? `<br><em>Notes: ${task.counselorNotes}</em>` : ''}
-        </div>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-small" onclick="openEditTaskModal('${task.taskId}')">Edit</button>
-        <button class="btn btn-danger btn-small" onclick="deleteTask('${task.taskId}')">Delete</button>
-      </div>
-    `;
-    container.appendChild(li);
-  });
+    const plan = await response.json();
+    const tasksDiv = document.getElementById(`tasks${planId}`);
+    
+    if (plan.tasks && plan.tasks.length > 0) {
+      tasksDiv.innerHTML = '';
+      plan.tasks.forEach(task => {
+        const taskEl = document.createElement('div');
+        taskEl.className = `task ${task.completed ? 'completed' : ''}`;
+        taskEl.innerHTML = `
+          <div class="task-content">
+            <div class="task-description">${task.description}</div>
+            <div class="task-meta">
+              ${task.completed ? 
+                `Completed: ${formatDate(task.completedAt)}` : 
+                `Due: ${formatDate(task.dueDate)}`}
+              ${task.counselorNotes ? `<br>Notes: ${task.counselorNotes}` : ''}
+            </div>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="editTask('${planId}', '${task.taskId}')" class="btn btn-secondary btn-small">Edit</button>
+            <button onclick="deleteTask('${planId}', '${task.taskId}')" class="btn btn-danger btn-small">Delete</button>
+          </div>
+        `;
+        tasksDiv.appendChild(taskEl);
+      });
+    } else {
+      tasksDiv.innerHTML = '<p class="empty-state">No tasks yet. Add tasks to this plan.</p>';
+    }
+    
+    detailsDiv.classList.remove('hidden');
+    
+  } catch (err) {
+    showAlert(err.message, 'error');
+  }
 }
 
-// ========== ADD TASK ==========
-async function handleAddTask(e) {
-  e.preventDefault();
-  const user = JSON.parse(localStorage.getItem('user'));
+// Add task
+function addTask(planId) {
+  const description = prompt('Task description:');
+  if (!description) return;
+  
+  const dueDate = prompt('Due date (YYYY-MM-DD):');
+  if (!dueDate) return;
+  
+  const notes = prompt('Counselor notes (optional):');
+  
+  performAddTask(planId, description, dueDate, notes);
+}
 
-  const data = {
-    description: document.getElementById('taskDescription').value,
-    dueDate: document.getElementById('taskDueDate').value,
-    counselorNotes: document.getElementById('taskNotes').value || null
-  };
-
+async function performAddTask(planId, description, dueDate, notes) {
   try {
-    const updatedPlan = await API_CONFIG.post(`/${currentPlanId}/tasks`, data, {
-      headers: { 'user-id': user.id }
+    const response = await fetch(`${RECOVERY_API}/${planId}/counselor/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify({
+        description,
+        dueDate: dueDate + 'T00:00:00',
+        counselorNotes: notes || null
+      })
     });
+
+    if (!response.ok) throw new Error('Failed to add task');
+
     showAlert('Task added successfully!', 'success');
-    document.getElementById('addTaskForm').reset();
-    updateLocalPlan(updatedPlan);
-  } catch (error) {
-    showError(error);
-  }
-}
-
-// ========== EDIT TASK ==========
-function openEditTaskModal(taskId) {
-  currentTaskId = taskId;
-  const plan = plans.find(p => p.id === currentPlanId);
-  const task = plan.tasks.find(t => t.taskId === taskId);
-  if (!task) return;
-
-  document.getElementById('editTaskDescription').value = task.description;
-  const dueDate = new Date(task.dueDate);
-  dueDate.setMinutes(dueDate.getMinutes() - dueDate.getTimezoneOffset());
-  document.getElementById('editTaskDueDate').value = dueDate.toISOString().slice(0, 16);
-  document.getElementById('editTaskNotes').value = task.counselorNotes || '';
-
-  document.getElementById('editTaskModal').classList.add('active');
-}
-
-function closeEditTaskModal() {
-  document.getElementById('editTaskModal').classList.remove('active');
-  document.getElementById('editTaskForm').reset();
-  currentTaskId = '';
-}
-
-async function handleEditTask(e) {
-  e.preventDefault();
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  const data = {
-    description: document.getElementById('editTaskDescription').value,
-    dueDate: document.getElementById('editTaskDueDate').value,
-    counselorNotes: document.getElementById('editTaskNotes').value || null
-  };
-
-  try {
-    const updatedPlan = await API_CONFIG.put(`/${currentPlanId}/tasks/${currentTaskId}`, data, {
-      headers: { 'user-id': user.id }
-    });
-    showAlert('Task updated successfully!', 'success');
-    closeEditTaskModal();
-    updateLocalPlan(updatedPlan);
-  } catch (error) {
-    showError(error);
-  }
-}
-
-// ========== DELETE TASK ==========
-async function deleteTask(taskId) {
-  if (!confirm('Are you sure you want to delete this task?')) return;
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  try {
-    const updatedPlan = await API_CONFIG.delete(`/${currentPlanId}/tasks/${taskId}`, {
-      headers: { 'user-id': user.id }
-    });
-    showAlert('Task deleted successfully!', 'success');
-    updateLocalPlan(updatedPlan);
-  } catch (error) {
-    showError(error);
-  }
-}
-
-// ========== PLAN STATUS ==========
-async function handleUpdateStatus() {
-  const newStatus = document.getElementById('planStatusSelect').value;
-  if (!confirm(`Change plan status to ${newStatus}?`)) return;
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  try {
-    const updatedPlan = await API_CONFIG.patch(`/${currentPlanId}/status`, { status: newStatus }, {
-      headers: { 'user-id': user.id }
-    });
-    showAlert('Plan status updated successfully!', 'success');
-    closeTaskModal();
-    updateLocalPlan(updatedPlan);
-  } catch (error) {
-    showError(error);
-  }
-}
-
-// ========== DELETE PLAN ==========
-async function handleDeletePlan() {
-  if (!confirm('Are you sure you want to DELETE this entire recovery plan?')) return;
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  try {
-    await API_CONFIG.delete(`/${currentPlanId}`, { headers: { 'user-id': user.id } });
-    showAlert('Recovery plan deleted successfully!', 'success');
-    closeTaskModal();
     loadPlans();
-  } catch (error) {
-    showError(error);
+    
+  } catch (err) {
+    showAlert(err.message, 'error');
   }
 }
 
-// ========== HELPERS ==========
-function updateLocalPlan(updatedPlan) {
-  const index = plans.findIndex(p => p.id === updatedPlan.id);
-  if (index !== -1) plans[index] = updatedPlan;
-  renderTasks(updatedPlan.tasks);
-  loadPlans();
+// Edit task
+function editTask(planId, taskId) {
+  const description = prompt('New task description:');
+  if (!description) return;
+  
+  const dueDate = prompt('New due date (YYYY-MM-DD):');
+  if (!dueDate) return;
+  
+  const notes = prompt('Counselor notes (optional):');
+  
+  performEditTask(planId, taskId, description, dueDate, notes);
 }
 
+async function performEditTask(planId, taskId, description, dueDate, notes) {
+  try {
+    const response = await fetch(`${RECOVERY_API}/${planId}/counselor/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify({
+        description,
+        dueDate: dueDate + 'T00:00:00',
+        counselorNotes: notes || null
+      })
+    });
+
+    if (!response.ok) throw new Error('Failed to update task');
+
+    showAlert('Task updated successfully!', 'success');
+    loadPlans();
+    
+  } catch (err) {
+    showAlert(err.message, 'error');
+  }
+}
+
+// Delete task
+async function deleteTask(planId, taskId) {
+  if (!confirm('Delete this task?')) return;
+  
+  try {
+    const response = await fetch(`${RECOVERY_API}/${planId}/counselor/tasks/${taskId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': token }
+    });
+
+    if (!response.ok) throw new Error('Failed to delete task');
+
+    showAlert('Task deleted!', 'success');
+    loadPlans();
+    
+  } catch (err) {
+    showAlert(err.message, 'error');
+  }
+}
+
+// Update plan status
+function updateStatus(planId, currentStatus) {
+  const newStatus = prompt(`Current status: ${currentStatus}. Enter new status (ACTIVE, COMPLETED, CANCELLED):`);
+  if (!newStatus || !['ACTIVE', 'COMPLETED', 'CANCELLED'].includes(newStatus.toUpperCase())) {
+    showAlert('Invalid status', 'error');
+    return;
+  }
+  
+  performUpdateStatus(planId, newStatus.toUpperCase());
+}
+
+async function performUpdateStatus(planId, status) {
+  try {
+    const response = await fetch(`${RECOVERY_API}/${planId}/counselor/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify({ status })
+    });
+
+    if (!response.ok) throw new Error('Failed to update status');
+
+    showAlert('Status updated!', 'success');
+    loadPlans();
+    
+  } catch (err) {
+    showAlert(err.message, 'error');
+  }
+}
+
+// Delete plan
+async function deletePlan(planId) {
+  if (!confirm('Delete this entire recovery plan? This cannot be undone!')) return;
+  
+  try {
+    const response = await fetch(`${RECOVERY_API}/${planId}/counselor`, {
+      method: 'DELETE',
+      headers: { 'Authorization': token }
+    });
+
+    if (!response.ok) throw new Error('Failed to delete plan');
+
+    showAlert('Plan deleted!', 'success');
+    loadPlans();
+    
+  } catch (err) {
+    showAlert(err.message, 'error');
+  }
+}
+
+// Format date helper
 function formatDate(dateStr) {
+  if (!dateStr) return 'N/A';
   return new Date(dateStr).toLocaleDateString();
 }
 
-function formatDateTime(dateStr) {
-  return new Date(dateStr).toLocaleString();
-}
-
-function isOverdue(dateStr) {
-  return new Date(dateStr) < new Date();
-}
+// Initial load
+loadPlans();

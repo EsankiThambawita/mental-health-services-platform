@@ -1,0 +1,51 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+}
+
+.main-content {
+  padding: 20px;
+  margin-left: 220px; /* Adjust for sidebar */
+}
+
+h1, h2 {
+  color: #333;
+}
+
+.plans-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.plan-card {
+  background-color: #A68DE1;
+  padding: 15px;
+  border-radius: 10px;
+  width: 250px;
+  color: white;
+}
+
+.plan-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.plan-card p {
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
+.plan-card button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.plan-card button.complete-task {
+  background-color: #63FF99;
+}

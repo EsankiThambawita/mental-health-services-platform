@@ -234,7 +234,7 @@ public class RecoveryPlanService {
                 plan.getStatus(),
                 taskResponses,
                 plan.getCreatedAt(),
-                plan.getUpdatedAt());
+                plan.getUpdatedAt(), null, null);
     }
 
     // converTaskToResponse

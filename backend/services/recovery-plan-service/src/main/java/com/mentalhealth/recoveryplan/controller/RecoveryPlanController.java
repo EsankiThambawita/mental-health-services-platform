@@ -113,7 +113,7 @@ public class RecoveryPlanController {
 
     @DeleteMapping("/{planId}/counselor")
     public ResponseEntity<Void> deletePlan(
-            @RequestHeader("Authorzation") String token,
+            @RequestHeader("Authoirzation") String token,
             @PathVariable String planId) {
 
         AuthClient.ValidatedUser user = authClient.validateToken(token);
@@ -193,7 +193,7 @@ public class RecoveryPlanController {
 
     @PutMapping("/{planId}/counselor/tasks/{taskId}")
     public ResponseEntity<RecoveryPlanResponse> updateTask(
-            @RequestHeader("user-id") String token,
+            @RequestHeader("Authorization") String token,
             @PathVariable String planId,
             @PathVariable String taskId,
             @Valid @RequestBody CreateTaskRequest request) {
