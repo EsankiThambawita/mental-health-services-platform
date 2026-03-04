@@ -1,4 +1,13 @@
-package com.nsbm.health.appointment.service.impl;
+/* =========================================================
+   AppointmentServiceImpl.java
+   - Business logic for appointment booking
+   - Key rules:
+     1) Book -> calls availabilityClient.bookSlot() then saves appointment
+     2) Cancel -> calls availabilityClient.releaseSlot(oldSlot) then marks CANCELLED
+     3) Reschedule -> release old slot -> book new slot -> update appointment
+   - Stores userName ONLY (no userId)
+   ========================================================= */
+        package com.nsbm.health.appointment.service.impl;
 
 import com.nsbm.health.appointment.client.AvailabilityClient;
 import com.nsbm.health.appointment.client.dto.AvailabilityResponse;
@@ -23,20 +32,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Business logic for appointment booking, cancellation, rescheduling and retrieval.
- *
- * Inter-service communication:
- * - Calls AvailabilityClient.bookSlot() which sends PUT /api/v1/availability/{id}/book
- *   to the Availability Management Service running on port 8082.
- * - This is done for both booking and rescheduling to lock the slot.
- * - If the availability service is unreachable, AvailabilityServiceException is thrown
- *   and no appointment is created (returns 503 to client).
- *
- * Double-booking prevention:
- * Layer 1 - existsByAvailabilityId() check before calling availability service.
- * Layer 2 - MongoDB unique index on availabilityId catches concurrent race conditions.
- */
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
 
@@ -51,9 +46,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         this.availabilityClient = availabilityClient;
     }
 
+    /* ---------------------------------------------------------
+       BOOK APPOINTMENT
+       - Ensures we don't double-book by availabilityId
+       - Locks slot in availability service
+       - Saves appointment in Mongo
+    ---------------------------------------------------------- */
     @Override
     public AppointmentResponse bookAppointment(BookAppointmentRequest request) {
-        log.info("Booking appointment - userId={}, availabilityId={}", request.getUserId(), request.getAvailabilityId());
+        log.info("Booking appointment - userName={}, availabilityId={}", request.getUserName(), request.getAvailabilityId());
 
         if (appointmentRepository.existsByAvailabilityId(request.getAvailabilityId())) {
             throw new DuplicateBookingException("Slot " + request.getAvailabilityId() + " is already booked.");
@@ -63,7 +64,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = new Appointment(
                 slot.getAvailabilityId(),
-                request.getUserId(),
+                request.getUserName(),
                 slot.getCounselorId(),
                 slot.getDate(),
                 slot.getStartTime(),
@@ -75,18 +76,26 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         try {
             Appointment saved = appointmentRepository.save(appointment);
-            log.info("Appointment created - id={}", saved.getId());
             return AppointmentMapper.toResponse(saved);
         } catch (DuplicateKeyException e) {
             throw new DuplicateBookingException("Slot " + request.getAvailabilityId() + " was taken by a concurrent request.");
         }
     }
 
+    /* ---------------------------------------------------------
+       CANCEL APPOINTMENT
+       - Releases slot in availability service
+       - Marks appointment CANCELLED
+    ---------------------------------------------------------- */
     @Override
     public AppointmentResponse cancelAppointment(String appointmentId, CancelAppointmentRequest request) {
         log.info("Cancelling appointment - id={}", appointmentId);
 
         Appointment appointment = findOrThrow(appointmentId);
+
+        // Release the slot so others can book it again
+        availabilityClient.releaseSlot(appointment.getAvailabilityId());
+
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setUpdatedAt(Instant.now());
 
@@ -97,6 +106,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         return AppointmentMapper.toResponse(appointmentRepository.save(appointment));
     }
 
+    /* ---------------------------------------------------------
+       RESCHEDULE APPOINTMENT
+       - Releases old slot
+       - Books new slot
+       - Updates appointment with new slot details
+    ---------------------------------------------------------- */
     @Override
     public AppointmentResponse rescheduleAppointment(String appointmentId, RescheduleAppointmentRequest request) {
         log.info("Rescheduling appointment - id={}, newAvailabilityId={}", appointmentId, request.getNewAvailabilityId());
@@ -107,6 +122,10 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new DuplicateBookingException("New slot " + request.getNewAvailabilityId() + " is already booked.");
         }
 
+        // Release old slot first
+        availabilityClient.releaseSlot(appointment.getAvailabilityId());
+
+        // Book new slot
         AvailabilityResponse newSlot = availabilityClient.bookSlot(request.getNewAvailabilityId());
 
         appointment.setAvailabilityId(newSlot.getAvailabilityId());
@@ -124,30 +143,32 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
+    /* ---------------------------------------------------------
+       QUERY: BY userName
+    ---------------------------------------------------------- */
     @Override
-    public List<AppointmentResponse> getAppointmentsByUserId(String userId) {
-        return appointmentRepository.findByUserId(userId)
+    public List<AppointmentResponse> getAppointmentsByUserName(String userName) {
+        return appointmentRepository.findByUserName(userName)
                 .stream()
                 .map(AppointmentMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    @Override
-    public List<AppointmentResponse> getAppointmentsByCounselorId(String counselorId) {
-        return appointmentRepository.findByCounselorId(counselorId)
-                .stream()
-                .map(AppointmentMapper::toResponse)
-                .collect(Collectors.toList());
-    }
 
+    /* ---------------------------------------------------------
+       PROXY: available slots by date
+       - calls availability service
+    ---------------------------------------------------------- */
     @Override
     public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
         return availabilityClient.getAvailableSlotsByDate(date);
     }
 
+    /* ---------------------------------------------------------
+       Helper: find appointment or throw 404-style exception
+    ---------------------------------------------------------- */
     private Appointment findOrThrow(String id) {
         return appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found: " + id));
     }
-
 }

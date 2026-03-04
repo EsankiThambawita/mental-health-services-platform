@@ -63,20 +63,13 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.rescheduleAppointment(appointmentId, request));
     }
 
-    @Operation(summary = "Get appointments by userId or counselorId")
+    @Operation(summary = "Get appointments by userName")
     @GetMapping
-    public ResponseEntity<List<AppointmentResponse>> getAppointments(
-            @RequestParam(required = false) String userId,
-            @RequestParam(required = false) String counselorId) {
-
-        if (userId == null && counselorId == null) {
-            throw new IllegalArgumentException("Either userId or counselorId must be provided.");
+    public ResponseEntity<List<AppointmentResponse>> getAppointments(@RequestParam String userName) {
+        if (userName == null || userName.isBlank()) {
+            return ResponseEntity.badRequest().build();
         }
-
-        if (userId != null) {
-            return ResponseEntity.ok(appointmentService.getAppointmentsByUserId(userId));
-        }
-        return ResponseEntity.ok(appointmentService.getAppointmentsByCounselorId(counselorId));
+        return ResponseEntity.ok(appointmentService.getAppointmentsByUserName(userName.trim()));
     }
 
     @GetMapping("/available-slots")

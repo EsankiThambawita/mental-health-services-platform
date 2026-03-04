@@ -24,7 +24,7 @@ public class Appointment {
     @Indexed(unique = true)
     private String availabilityId;
 
-    private String userId;
+    private String userName;
     private String counselorId;
     private LocalDate date;
     private LocalTime startTime;
@@ -47,7 +47,7 @@ public class Appointment {
                        LocalDate date, LocalTime startTime, LocalTime endTime,
                        AppointmentStatus status) {
         this.availabilityId = availabilityId;
-        this.userId = userId;
+        this.userName = userId;
         this.counselorId = counselorId;
         this.date = date;
         this.startTime = startTime;
@@ -61,8 +61,8 @@ public class Appointment {
     public String getAvailabilityId() { return availabilityId; }
     public void setAvailabilityId(String availabilityId) { this.availabilityId = availabilityId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public String getUserId() { return userName; }
+    public void setUserId(String userId) { this.userName = userId; }
 
     public String getCounselorId() { return counselorId; }
     public void setCounselorId(String counselorId) { this.counselorId = counselorId; }

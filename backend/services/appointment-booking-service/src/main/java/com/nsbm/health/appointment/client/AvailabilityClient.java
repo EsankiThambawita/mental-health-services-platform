@@ -1,4 +1,12 @@
-package com.nsbm.health.appointment.client;
+/* =========================================================
+   AvailabilityClient.java
+   - Client for Availability Management Service
+   - Supports:
+     - bookSlot(id):   PUT /api/v1/availability/{id}/book
+     - releaseSlot(id):PUT /api/v1/availability/{id}/release  (NEW)
+     - getAvailableSlotsByDate(date): GET /api/v1/availability/available?date=...
+   ========================================================= */
+        package com.nsbm.health.appointment.client;
 
 import com.nsbm.health.appointment.client.dto.AvailabilityResponse;
 import com.nsbm.health.appointment.exception.AvailabilityServiceException;
@@ -16,20 +24,10 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * HTTP client that communicates with the Availability Management Service.
- *
- * This is the ONLY place in this service that contacts the Availability service.
- * It calls PUT /api/v1/availability/{id}/book to atomically lock a slot.
- *
- * Base URL is configured via availability.base-url in application.yml.
- * Currently points to http://localhost:8082 (availability service port).
- */
 @Component
 public class AvailabilityClient {
 
     private static final Logger log = LoggerFactory.getLogger(AvailabilityClient.class);
-
     private final WebClient webClient;
 
     public AvailabilityClient(@Value("${availability.base-url}") String baseUrl,
@@ -37,59 +35,70 @@ public class AvailabilityClient {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
-    /**
-     * Calls PUT /api/v1/availability/{id}/book on the Availability Management Service.
-     * This atomically marks the slot as BOOKED and returns the updated slot details.
-     *
-     * @param availabilityId the ID of the slot to book
-     * @return AvailabilityResponse with the booked slot details (counselorId, date, times)
-     * @throws SlotNotFoundException       if availability service returns 404
-     * @throws SlotNotAvailableException   if availability service returns 409 (already booked)
-     * @throws AvailabilityServiceException if service is unreachable or returns unexpected error
-     */
-
-    // =========================
-    // BOOK SLOT
-    // =========================
+    /* ---------------------------------------------------------
+       BOOK SLOT
+       - PUT /api/v1/availability/{id}/book
+       - 404 -> SlotNotFoundException
+       - 409 -> SlotNotAvailableException (already booked)
+       - Other 5xx/4xx -> AvailabilityServiceException
+    ---------------------------------------------------------- */
     public AvailabilityResponse bookSlot(String availabilityId) {
         log.info("Calling Availability Service - PUT /api/v1/availability/{}/book", availabilityId);
 
         try {
-            AvailabilityResponse response = webClient.put()
+            return webClient.put()
                     .uri("/api/v1/availability/{id}/book", availabilityId)
                     .retrieve()
-                    .onStatus(
-                            status -> status.value() == 404,
-                            clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .flatMap(body -> Mono.error(
-                                            new SlotNotFoundException("Availability slot not found: " + availabilityId))))
-                    .onStatus(
-                            status -> status.value() == 409,
-                            clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .flatMap(body -> Mono.error(
-                                            new SlotNotAvailableException("Slot is already booked: " + availabilityId))))
-                    .onStatus(
-                            HttpStatusCode::isError,
-                            clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .flatMap(body -> Mono.error(
-                                            new AvailabilityServiceException("Availability service error: " + body))))
+                    .onStatus(s -> s.value() == 404,
+                            r -> r.bodyToMono(String.class).flatMap(b ->
+                                    Mono.error(new SlotNotFoundException("Availability slot not found: " + availabilityId))))
+                    .onStatus(s -> s.value() == 409,
+                            r -> r.bodyToMono(String.class).flatMap(b ->
+                                    Mono.error(new SlotNotAvailableException("Slot is already booked: " + availabilityId))))
+                    .onStatus(HttpStatusCode::isError,
+                            r -> r.bodyToMono(String.class).flatMap(b ->
+                                    Mono.error(new AvailabilityServiceException("Availability service error: " + b))))
                     .bodyToMono(AvailabilityResponse.class)
                     .block();
-
-            log.info("Availability Service responded - slot booked: availabilityId={}", availabilityId);
-            return response;
-
         } catch (WebClientRequestException e) {
             log.error("Availability Service unreachable: {}", e.getMessage());
             throw new AvailabilityServiceException("Availability Management Service is currently unreachable.");
         }
     }
 
-    // =========================
-    // GET AVAILABLE SLOTS BY DATE
-    // =========================
-    public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
+    /* ---------------------------------------------------------
+       RELEASE SLOT (NEW)
+       - PUT /api/v1/availability/{id}/release
+       - Used when appointment is cancelled/rescheduled
+       - 404 -> SlotNotFoundException
+       - Other 5xx/4xx -> AvailabilityServiceException
+    ---------------------------------------------------------- */
+    public AvailabilityResponse releaseSlot(String availabilityId) {
+        log.info("Calling Availability Service - PUT /api/v1/availability/{}/release", availabilityId);
 
+        try {
+            return webClient.put()
+                    .uri("/api/v1/availability/{id}/release", availabilityId)
+                    .retrieve()
+                    .onStatus(s -> s.value() == 404,
+                            r -> r.bodyToMono(String.class).flatMap(b ->
+                                    Mono.error(new SlotNotFoundException("Availability slot not found: " + availabilityId))))
+                    .onStatus(HttpStatusCode::isError,
+                            r -> r.bodyToMono(String.class).flatMap(b ->
+                                    Mono.error(new AvailabilityServiceException("Availability service error: " + b))))
+                    .bodyToMono(AvailabilityResponse.class)
+                    .block();
+        } catch (WebClientRequestException e) {
+            log.error("Availability Service unreachable: {}", e.getMessage());
+            throw new AvailabilityServiceException("Availability Management Service is currently unreachable.");
+        }
+    }
+
+    /* ---------------------------------------------------------
+       GET AVAILABLE SLOTS BY DATE
+       - GET /api/v1/availability/available?date=YYYY-MM-DD
+    ---------------------------------------------------------- */
+    public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
         log.info("Calling Availability Service - GET available slots for date={}", date);
 
         try {
@@ -102,7 +111,6 @@ public class AvailabilityClient {
                     .bodyToFlux(AvailabilityResponse.class)
                     .collectList()
                     .block();
-
         } catch (WebClientRequestException e) {
             throw new AvailabilityServiceException("Availability Management Service is currently unreachable.");
         }

@@ -9,22 +9,22 @@ public class BookAppointmentRequest {
     @NotBlank(message = "availabilityId is required")
     private String availabilityId;
 
-    @NotBlank(message = "userId is required")
-    private String userId;
+    @NotBlank(message = "userName is required")
+    private String userName;
 
     public BookAppointmentRequest() {
     }
 
-    public BookAppointmentRequest(String availabilityId, String userId) {
+    public BookAppointmentRequest(String availabilityId, String userName) {
         this.availabilityId = availabilityId;
-        this.userId = userId;
+        this.userName = userName;
     }
 
     public String getAvailabilityId() { return availabilityId; }
     public void setAvailabilityId(String availabilityId) { this.availabilityId = availabilityId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 
     @Override
     public String toString() {
