@@ -1,5 +1,6 @@
 package com.nsbm.health.availability.service.impl;
 
+import com.nsbm.health.availability.client.CounselorDirectoryClient;
 import com.nsbm.health.availability.dto.AvailabilityResponse;
 import com.nsbm.health.availability.dto.CreateAvailabilityRequest;
 import com.nsbm.health.availability.exception.BadRequestException;
@@ -23,9 +24,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private static final Logger log = LoggerFactory.getLogger(AvailabilityServiceImpl.class);
 
     private final AvailabilityRepository availabilityRepository;
+    private final CounselorDirectoryClient counselorDirectoryClient;
 
-    public AvailabilityServiceImpl(AvailabilityRepository availabilityRepository) {
+    public AvailabilityServiceImpl(
+            AvailabilityRepository availabilityRepository,
+            CounselorDirectoryClient counselorDirectoryClient
+    ) {
         this.availabilityRepository = availabilityRepository;
+        this.counselorDirectoryClient = counselorDirectoryClient;
     }
 
     /**
@@ -66,6 +72,15 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         if (request == null) {
             throw new BadRequestException("request body is required");
         }
+        if (request.getCounselorId() == null || request.getCounselorId().isBlank()) {
+            throw new BadRequestException("counselorId is required");
+        }
+        if (request.getDate() == null) {
+            throw new BadRequestException("date is required");
+        }
+
+        // ✅ Service-to-service communication (your marks!)
+        counselorDirectoryClient.validateCounselorExists(request.getCounselorId());
 
         validateTimeRange(request.getStartTime(), request.getEndTime());
 
@@ -126,6 +141,19 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 .toList();
     }
 
+    @Override
+    public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
+        if (date == null) {
+            throw new BadRequestException("date is required");
+        }
+
+        return availabilityRepository
+                .findByDateAndStatusOrderByStartTimeAsc(date, AvailabilityStatus.AVAILABLE)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private void validateTimeRange(LocalTime start, LocalTime end) {
         if (start == null || end == null) {
             throw new BadRequestException("startTime and endTime are required");
@@ -157,17 +185,5 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         resp.setEndTime(slot.getEndTime());
         resp.setStatus(slot.getStatus());
         return resp;
-    }
-    @Override
-    public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
-        if (date == null) {
-            throw new BadRequestException("date is required");
-        }
-
-        return availabilityRepository
-                .findByDateAndStatusOrderByStartTimeAsc(date, AvailabilityStatus.AVAILABLE)
-                .stream()
-                .map(this::toResponse)
-                .toList();
     }
 }

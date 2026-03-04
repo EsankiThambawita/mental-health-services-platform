@@ -125,11 +125,27 @@
                 </form>
             </div>
         </section>
-        <div class="card">
-            <h2>Show ALL Available Slots (by Date)</h2>
-            <input type="date" id="availableDate">
-            <button onclick="fetchAllAvailable()">Show Available Slots</button>
-        </div>
+        <section class="section">
+            <div class="section-header">
+                <h2>Show All Available Slots</h2>
+                <p class="section-description">View all AVAILABLE slots for a selected date</p>
+            </div>
+
+            <div class="card search-card">
+                <form id="availableByDateForm">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="availableDate">Date</label>
+                            <input type="date" id="availableDate" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="availableSubmitBtn">
+                        <span class="btn-icon">📅</span> Show Available Slots
+                    </button>
+                </form>
+            </div>
+        </section>
         <!-- Results Section -->
         <section class="section">
             <div class="section-header">
