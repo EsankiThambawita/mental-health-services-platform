@@ -11,21 +11,15 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Global Exception Handler for REST API
- * Handles all exceptions thrown by REST controllers and converts them to error responses
- */
+// Global exception handler for REST API
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Handle validation errors - when request data is invalid
-     */
+    // Handle validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
 
-        // Create a map to store field validation errors
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -33,7 +27,6 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        // Build error response
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now().toString(),
                 HttpStatus.BAD_REQUEST.value(),
@@ -45,14 +38,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Handle resource not found exception
-     */
+    // Handle resource not found
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex) {
 
-        // Build error response for missing resource
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now().toString(),
                 HttpStatus.NOT_FOUND.value(),
@@ -64,9 +54,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    /**
-     * Handle illegal argument exception
-     */
+    // Handle illegal arguments
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex) {
@@ -83,14 +71,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Handle all other exceptions
-     */
+    // Handle all other unexpected exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex) {
 
-        // Build error response for unexpected errors
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now().toString(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),

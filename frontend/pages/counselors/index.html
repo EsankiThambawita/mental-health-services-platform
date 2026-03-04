@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counselor Directory</title>
+    <link rel="stylesheet" href="../../css/counselors.css">
+    <link rel="stylesheet" href="../../css/sidebar.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Counselor Directory</h1>
+
+    <!-- Add Counselor Form -->
+    <div class="form-card">
+        <h2>Add Counselor</h2>
+        <input type="text" id="name" placeholder="Name">
+        <input type="text" id="languages" placeholder="Languages (comma separated)">
+        <input type="text" id="specializations" placeholder="Specializations (ANXIETY,STRESS)">
+        <input type="number" id="experience" placeholder="Years of Experience">
+        <button onclick="createCounselor()">Add Counselor</button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-card">
+        <h2>Search Counselors</h2>
+        <input type="text" id="search" placeholder="Search by name or specialization">
+        <button onclick="searchCounselors()">Search</button>
+        <button onclick="loadCounselors()">Show All</button>
+    </div>
+
+    <!-- Counselor List -->
+    <h2>Available Counselors</h2>
+    <div id="counselorList" class="card-container"></div>
+</div>
+
+<script src="../../js/sidebar.js"></script>
+<script src="../../js/counselors.js"></script>
+</body>
+</html>

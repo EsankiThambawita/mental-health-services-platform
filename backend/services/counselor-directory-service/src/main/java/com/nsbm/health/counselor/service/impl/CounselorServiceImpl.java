@@ -55,5 +55,13 @@ public class CounselorServiceImpl implements CounselorService {
                         .orElseThrow(() -> new RuntimeException("Counselor not found"))
         );
     }
+
+    @Override
+    public List<CounselorResponseDTO> searchCounselors(String query) {
+        return repository.findByNameContainingIgnoreCaseOrSpecializationsContainingIgnoreCase(query, query)
+                .stream()
+                .map(MapperUtil::toDTO)
+                .collect(Collectors.toList());
+    }
 }
 

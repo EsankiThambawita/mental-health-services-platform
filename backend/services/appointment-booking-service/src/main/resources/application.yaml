@@ -8,3 +8,16 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/mhs_appointment
+
+availability:
+  base-url: http://localhost:8082
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+
+logging:
+  level:
+    com.nsbm.health.appointment: DEBUG

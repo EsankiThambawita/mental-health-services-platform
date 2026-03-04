@@ -53,8 +53,6 @@ public class MoodSummary {
     @Schema(description = "Most frequently recorded mood category")
     private String dominantMood;
 
-    @Schema(description = "Percentage change from previous period")
-    private Double trendPercentage;
 
     @Schema(description = "Timestamp when summary was generated")
     private LocalDateTime generatedAt;

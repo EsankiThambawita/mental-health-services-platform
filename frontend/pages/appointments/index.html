@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Appointment Booking</title>
+    <link rel="stylesheet" href="../../css/appointments.css" />
+    <link rel="stylesheet" href="../../css/sidebar.css" />
+</head>
+
+
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <div class="brand">
+            <div class="logo">AB</div>
+            <div>
+                <h1>Appointment Booking</h1>
+                <p class="muted">Book, reschedule, cancel and view appointments</p>
+            </div>
+        </div>
+
+        <div class="env">
+            <label for="apiBase">API Base</label>
+            <input id="apiBase" type="text" value="http://localhost:8083" />
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="notice" id="banner" hidden></div>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>Book an Appointment</h2>
+            <p class="muted">Select a date and choose a time slot</p>
+        </div>
+
+        <form id="bookForm" class="grid">
+
+            <div class="field">
+                <label for="dateSelect">Select Date</label>
+                <input id="dateSelect" type="date" required />
+            </div>
+
+            <div class="field">
+                <label for="slotSelect">Available Time Slots</label>
+                <select id="slotSelect" disabled required>
+                    <option value="">-- Select a date first --</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="userId">Your User ID</label>
+                <input id="userId" type="text" value="user-1" required />
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" type="submit">Book Appointment</button>
+            </div>
+        </form>
+
+        <div class="feedback">
+            <div class="status" id="bookStatus">Ready</div>
+            <div class="summary" id="bookSummary">
+                Select a date to see available time slots.
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>Cancel an appointment</h2>
+            <p class="muted">Cancel if you can’t attend</p>
+        </div>
+
+        <form id="cancelForm" class="grid">
+            <div class="field">
+                <label for="cancelAppointmentId">Appointment ID</label>
+                <input id="cancelAppointmentId" type="text" placeholder="Appointment id (from booking or list)" required />
+            </div>
+
+            <div class="field">
+                <label for="cancelReason">Reason (optional)</label>
+                <input id="cancelReason" type="text" placeholder="e.g. Not available" />
+            </div>
+
+            <div class="actions">
+                <button class="btn danger" type="submit">Cancel</button>
+                <button class="btn" type="button" id="clearCancel">Clear</button>
+            </div>
+        </form>
+
+        <div class="feedback">
+            <div class="status" id="cancelStatus">Ready</div>
+            <div class="summary" id="cancelSummary">Enter an appointment id and click Cancel.</div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>Reschedule an appointment</h2>
+            <p class="muted">Move to a different slot</p>
+        </div>
+
+        <form id="rescheduleForm" class="grid">
+            <div class="field">
+                <label for="rescheduleAppointmentId">Appointment ID</label>
+                <input id="rescheduleAppointmentId" type="text" placeholder="Appointment id" required />
+            </div>
+
+            <div class="field">
+                <label for="newAvailabilityId">New Availability ID</label>
+                <input id="newAvailabilityId" type="text" placeholder="New slot id" required />
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" type="submit">Reschedule</button>
+                <button class="btn" type="button" id="clearReschedule">Clear</button>
+            </div>
+        </form>
+
+        <div class="feedback">
+            <div class="status" id="rescheduleStatus">Ready</div>
+            <div class="summary" id="rescheduleSummary">Enter the appointment id and a new slot id.</div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>My appointments</h2>
+            <p class="muted">View appointments by user or counselor</p>
+        </div>
+
+        <form id="getForm" class="grid">
+            <div class="field">
+                <label for="queryType">Search by</label>
+                <select id="queryType">
+                    <option value="userId" selected>userId</option>
+                    <option value="counselorId">counselorId</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="queryValue">Value</label>
+                <input id="queryValue" type="text" value="user-1" required />
+            </div>
+
+            <div class="actions">
+                <button class="btn" type="submit">Search</button>
+                <button class="btn" type="button" id="clearGet">Clear</button>
+            </div>
+        </form>
+
+        <div class="feedback">
+            <div class="status" id="getStatus">Ready</div>
+            <div class="summary" id="getSummary">Search to see your appointments below.</div>
+        </div>
+
+        <div class="table-wrap" aria-live="polite">
+            <table id="appointmentsTable">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Counselor</th>
+                    <th>Status</th>
+                    <th>Appointment ID</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="empty" id="emptyState" hidden>
+                No appointments found.
+            </div>
+        </div>
+
+        <details class="debug">
+            <summary>Debug (raw JSON)</summary>
+            <pre id="debugJson">[]</pre>
+        </details>
+    </section>
+
+    <footer class="footer muted">
+        Tip: open this page via a local server (not file://) to avoid browser security issues.
+    </footer>
+</main>
+
+<script src="../../js/appointments.js"></script>
+<script src="../../js/sidebar.js"></script>
+</body>
+</html>
