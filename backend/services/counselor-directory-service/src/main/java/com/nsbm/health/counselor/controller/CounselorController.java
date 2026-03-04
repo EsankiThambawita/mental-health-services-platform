@@ -44,4 +44,9 @@ public class CounselorController {
     public List<CounselorResponseDTO> search(@RequestParam String query) {
         return service.searchCounselors(query);
     }
+
+    @PutMapping("/{id}")
+    public CounselorResponseDTO update(@PathVariable String id, @RequestBody CounselorRequestDTO dto) {
+        return apiService.updateCounselor(id, dto);
+    }
 }
