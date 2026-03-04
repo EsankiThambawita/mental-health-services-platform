@@ -2,6 +2,7 @@
 (function () {
   const pages = [
     { name: 'Mood & Resources', icon: '🧠', path: '/pages/mood-tracking/index.html' },
+    { name: 'Counselors', icon: '👨‍⚕️', path: '/pages/counselors/index.html' },
     { name: 'Availability', icon: '📅', path: '/pages/availability/index.html' },
     { name: 'Appointments', icon: '📋', path: '/pages/appointments/index.html' },
     { name: 'Recovery Plan', icon: '📝', path: '' },
@@ -10,11 +11,11 @@
   // Get role from localStorage
   const role = localStorage.getItem('role');
   if (role === 'COUNSELOR') {
-    pages[3].path = '/pages/recovery-plans/counselor.html';
+    pages[4].path = '/pages/recovery-plans/counselor.html';
   } else if (role === 'PATIENT') {
-    pages[3].path = '/pages/recovery-plans/patient.html';
+    pages[4].path = '/pages/recovery-plans/patient.html';
   } else {
-    pages[3].path = '/pages/authentication/Signin.html'; // fallback if not logged in
+    pages[4].path = '/pages/authentication/signin.html'; // fallback if not logged in
   }
 
   // Figure out which page we're on
