@@ -2,7 +2,7 @@ package com.nsbm.health.counselor.model;
 
 import java.util.List;
 
-public class CounselorProfile {
+public class wCounselorProfile {
 
     private String id;
     private String name;
