@@ -9,6 +9,7 @@
 <div class="container">
     <h1>Counselor Directory</h1>
 
+    <!-- Add Counselor Form -->
     <div class="form-card">
         <h2>Add Counselor</h2>
         <input type="text" id="name" placeholder="Name">
@@ -18,6 +19,15 @@
         <button onclick="createCounselor()">Add Counselor</button>
     </div>
 
+    <!-- Search -->
+    <div class="search-card">
+        <h2>Search Counselors</h2>
+        <input type="text" id="search" placeholder="Search by name or specialization">
+        <button onclick="searchCounselors()">Search</button>
+        <button onclick="loadCounselors()">Show All</button>
+    </div>
+
+    <!-- Counselor List -->
     <h2>Available Counselors</h2>
     <div id="counselorList" class="card-container"></div>
 </div>

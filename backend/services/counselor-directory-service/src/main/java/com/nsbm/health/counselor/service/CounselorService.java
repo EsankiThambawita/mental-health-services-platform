@@ -14,5 +14,6 @@ public interface CounselorService {
     List<CounselorResponseDTO> getAllCounselors();
 
     CounselorResponseDTO getCounselorById(String id);
+    List<CounselorResponseDTO> searchCounselors(String query);
 }
 

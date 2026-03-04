@@ -39,4 +39,9 @@ public class CounselorController {
     public CounselorResponseDTO getById(@PathVariable String id) {
         return service.getCounselorById(id);
     }
+
+    @GetMapping("/search")
+    public List<CounselorResponseDTO> search(@RequestParam String query) {
+        return service.searchCounselors(query);
+    }
 }
