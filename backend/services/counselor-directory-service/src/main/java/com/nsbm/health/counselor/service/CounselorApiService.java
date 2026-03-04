@@ -13,44 +13,41 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Service
-public class CounselorApiService implements CounselorService {
+public class CounselorApiService {
 
     private final CounselorService counselorService;
     private final AvailabilityClient availabilityClient;
 
-    public CounselorApiService(CounselorService counselorService, AvailabilityClient availabilityClient) {
+    public CounselorApiService(
+            CounselorService counselorService,
+            AvailabilityClient availabilityClient) {
         this.counselorService = counselorService;
         this.availabilityClient = availabilityClient;
     }
 
-    // ==================== CounselorService Interface Methods ====================
+  
 
-    @Override
-    public CounselorResponseDTO createCounselor(CounselorRequestDTO dto) {
-        return counselorService.createCounselor(dto);
-    }
-
-    @Override
-    public CounselorResponseDTO updateCounselor(String id, CounselorRequestDTO dto) {
-        return counselorService.updateCounselor(id, dto);
-    }
-
-    @Override
     public List<CounselorResponseDTO> getAllCounselors() {
         return counselorService.getAllCounselors();
     }
 
-    @Override
-    public CounselorResponseDTO getCounselorById(String id) {
-        return counselorService.getCounselorById(id);
+    public CounselorResponseDTO addCounselor(CounselorRequestDTO dto) {
+        return counselorService.createCounselor(dto);
     }
 
-    @Override
     public List<CounselorResponseDTO> searchCounselors(String query) {
         return counselorService.searchCounselors(query);
     }
 
-    // ==================== NEW Availability Methods ====================
+    public CounselorResponseDTO updateCounselor(String id, CounselorRequestDTO dto) {
+        return counselorService.updateCounselor(id, dto);
+    }
+
+    public CounselorResponseDTO getCounselorById(String id) {
+        return counselorService.getCounselorById(id);
+    }
+
+    // ==================== NEW AVAILABILITY METHODS ====================
 
     public List<AvailabilityResponse> getCounselorAvailability(String counselorId) {
         return availabilityClient.getCounselorAvailability(counselorId);
