@@ -1,4 +1,4 @@
-package com.university.auth;
+package com.mentalhealth.auth;
 
 public class Main {
     public static void main(String[] args) {
