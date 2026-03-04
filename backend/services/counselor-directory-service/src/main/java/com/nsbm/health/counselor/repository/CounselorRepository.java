@@ -9,6 +9,6 @@ import java.util.List;
  */
 public interface CounselorRepository extends MongoRepository<CounselorProfile, String> {
 
-    List<CounselorProfile> findByLanguagesContaining(String language);
+    List<CounselorProfile> findByNameContainingIgnoreCaseOrSpecializationsContainingIgnoreCase(String name, String spec);
 }
 

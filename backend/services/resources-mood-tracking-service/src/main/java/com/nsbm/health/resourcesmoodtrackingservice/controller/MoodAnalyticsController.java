@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * REST Controller for Mood Analytics operations
+ * REST API for mood analytics
  */
 @RestController
 @RequestMapping("/v1/mood-analytics")
@@ -25,9 +24,7 @@ public class MoodAnalyticsController {
 
     private final MoodAnalyticsService moodAnalyticsService;
 
-    /**
-     * Generate daily mood summary
-     */
+    // Generate daily mood summary
     @PostMapping("/daily/{userId}")
     public ResponseEntity<MoodSummary> generateDailySummary(
             @PathVariable String userId,
@@ -36,9 +33,7 @@ public class MoodAnalyticsController {
         return new ResponseEntity<>(summary, HttpStatus.CREATED);
     }
 
-    /**
-     * Generate weekly mood summary
-     */
+    // Generate weekly mood summary
     @PostMapping("/weekly/{userId}")
     public ResponseEntity<MoodSummary> generateWeeklySummary(
             @PathVariable String userId,
@@ -47,9 +42,7 @@ public class MoodAnalyticsController {
         return new ResponseEntity<>(summary, HttpStatus.CREATED);
     }
 
-    /**
-     * Generate monthly mood summary
-     */
+    // Generate monthly mood summary
     @PostMapping("/monthly/{userId}")
     public ResponseEntity<MoodSummary> generateMonthlySummary(
             @PathVariable String userId,
@@ -59,44 +52,20 @@ public class MoodAnalyticsController {
         return new ResponseEntity<>(summary, HttpStatus.CREATED);
     }
 
-    /**
-     * Get mood summary by ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<MoodSummary> getMoodSummary(@PathVariable String id) {
-        Optional<MoodSummary> summary = moodAnalyticsService.getMoodSummary(id);
-        return summary.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Get all summaries for a user
-     */
+    // Get all summaries for a user
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<MoodSummary>> getUserSummaries(@PathVariable String userId) {
         List<MoodSummary> summaries = moodAnalyticsService.getUserSummaries(userId);
         return ResponseEntity.ok(summaries);
     }
 
-    /**
-     * Get summaries by period
-     */
-    @GetMapping("/user/{userId}/period/{period}")
-    public ResponseEntity<List<MoodSummary>> getSummariesByPeriod(
-            @PathVariable String userId,
-            @PathVariable String period) {
-        List<MoodSummary> summaries = moodAnalyticsService.getSummariesByPeriod(userId, period);
-        return ResponseEntity.ok(summaries);
-    }
 
-
-    /**
-     * Check if user has risk pattern
-     */
-    @GetMapping("/user/{userId}/risk-pattern")
-    public ResponseEntity<Boolean> hasRiskPattern(@PathVariable String userId) {
-        boolean hasRisk = moodAnalyticsService.hasRiskPattern(userId);
-        return ResponseEntity.ok(hasRisk);
+    // Delete a summary
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSummary(@PathVariable String id) {
+        if (moodAnalyticsService.deleteSummary(id)) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }
-

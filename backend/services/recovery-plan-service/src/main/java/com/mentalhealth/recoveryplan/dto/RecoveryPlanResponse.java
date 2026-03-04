@@ -21,13 +21,16 @@ public class RecoveryPlanResponse {
     private List<TaskResponse> tasks;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String patientName;
+    private String patientEmail;
 
     public RecoveryPlanResponse() {
     }
 
     public RecoveryPlanResponse(String id, String patientId, String counselorId, String appointmentId, String title,
             String description, LocalDateTime startDate, LocalDateTime endDate, PlanStatus status,
-            List<TaskResponse> tasks, LocalDateTime createdAt, LocalDateTime updatedAt) {
+            List<TaskResponse> tasks, LocalDateTime createdAt, LocalDateTime updatedAt, String patientName,
+            String patientEmail) {
         this.id = id;
         this.patientId = patientId;
         this.counselorId = counselorId;
@@ -40,6 +43,8 @@ public class RecoveryPlanResponse {
         this.tasks = tasks;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.patientName = patientName;
+        this.patientEmail = patientEmail;
     }
 
     public String getId() {
@@ -90,6 +95,14 @@ public class RecoveryPlanResponse {
         return updatedAt;
     }
 
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public String getPatientEmail() {
+        return patientEmail;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -136,5 +149,13 @@ public class RecoveryPlanResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public void setPatientEmail(String patientEmail) {
+        this.patientEmail = patientEmail;
     }
 }
