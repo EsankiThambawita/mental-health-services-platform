@@ -13,7 +13,7 @@ body {
     border-radius: 8px;
 }
 
-h1, h2 {
+.container h1, .container h2 {
     text-align: center;
 }
 
@@ -24,13 +24,13 @@ h1, h2 {
     border-radius: 5px;
 }
 
-input {
+.container input {
     margin: 5px 0;
     padding: 8px;
     width: calc(100% - 16px);
 }
 
-button {
+.container button {
     padding: 8px 16px;
     margin-top: 5px;
     cursor: pointer;
