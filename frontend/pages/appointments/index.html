@@ -32,31 +32,39 @@
 
     <section class="card">
         <div class="card-head">
-            <h2>Book an appointment</h2>
-            <p class="muted">Choose a slot and book it</p>
+            <h2>Book an Appointment</h2>
+            <p class="muted">Select a date and choose a time slot</p>
         </div>
 
         <form id="bookForm" class="grid">
+
             <div class="field">
-                <label for="availabilityId">Availability ID</label>
-                <input id="availabilityId" type="text" placeholder="Paste slot id from Availability service" required />
-                <small class="hint">Example: 69a5ed35a8ccad1f6ca94871</small>
+                <label for="dateSelect">Select Date</label>
+                <input id="dateSelect" type="date" required />
             </div>
 
             <div class="field">
-                <label for="userId">User ID</label>
+                <label for="slotSelect">Available Time Slots</label>
+                <select id="slotSelect" disabled required>
+                    <option value="">-- Select a date first --</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="userId">Your User ID</label>
                 <input id="userId" type="text" value="user-1" required />
             </div>
 
             <div class="actions">
-                <button class="btn primary" type="submit">Book</button>
-                <button class="btn" type="button" id="clearBook">Clear</button>
+                <button class="btn primary" type="submit">Book Appointment</button>
             </div>
         </form>
 
         <div class="feedback">
             <div class="status" id="bookStatus">Ready</div>
-            <div class="summary" id="bookSummary">Fill the form and click Book.</div>
+            <div class="summary" id="bookSummary">
+                Select a date to see available time slots.
+            </div>
         </div>
     </section>
 

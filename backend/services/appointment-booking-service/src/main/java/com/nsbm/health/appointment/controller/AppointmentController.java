@@ -1,5 +1,6 @@
 package com.nsbm.health.appointment.controller;
 
+import com.nsbm.health.appointment.client.dto.AvailabilityResponse;
 import com.nsbm.health.appointment.dto.AppointmentResponse;
 import com.nsbm.health.appointment.dto.BookAppointmentRequest;
 import com.nsbm.health.appointment.dto.CancelAppointmentRequest;
@@ -9,6 +10,7 @@ import com.nsbm.health.appointment.util.ApiPaths;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -74,5 +77,16 @@ public class AppointmentController {
             return ResponseEntity.ok(appointmentService.getAppointmentsByUserId(userId));
         }
         return ResponseEntity.ok(appointmentService.getAppointmentsByCounselorId(counselorId));
+    }
+
+    @GetMapping("/available-slots")
+    public ResponseEntity<List<AvailabilityResponse>> getAvailableSlots(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date) {
+
+        return ResponseEntity.ok(
+                appointmentService.getAvailableSlotsByDate(date)
+        );
     }
 }

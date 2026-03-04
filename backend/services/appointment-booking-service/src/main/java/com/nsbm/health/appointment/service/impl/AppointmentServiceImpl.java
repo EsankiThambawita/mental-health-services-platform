@@ -19,6 +19,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -139,8 +140,14 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.toList());
     }
 
-    private Appointment findOrThrow(String appointmentId) {
-        return appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found: " + appointmentId));
+    @Override
+    public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
+        return availabilityClient.getAvailableSlotsByDate(date);
     }
+
+    private Appointment findOrThrow(String id) {
+        return appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found: " + id));
+    }
+
 }

@@ -13,6 +13,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.util.List;
+
 /**
  * HTTP client that communicates with the Availability Management Service.
  *
@@ -44,6 +47,10 @@ public class AvailabilityClient {
      * @throws SlotNotAvailableException   if availability service returns 409 (already booked)
      * @throws AvailabilityServiceException if service is unreachable or returns unexpected error
      */
+
+    // =========================
+    // BOOK SLOT
+    // =========================
     public AvailabilityResponse bookSlot(String availabilityId) {
         log.info("Calling Availability Service - PUT /api/v1/availability/{}/book", availabilityId);
 
@@ -74,6 +81,29 @@ public class AvailabilityClient {
 
         } catch (WebClientRequestException e) {
             log.error("Availability Service unreachable: {}", e.getMessage());
+            throw new AvailabilityServiceException("Availability Management Service is currently unreachable.");
+        }
+    }
+
+    // =========================
+    // GET AVAILABLE SLOTS BY DATE
+    // =========================
+    public List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date) {
+
+        log.info("Calling Availability Service - GET available slots for date={}", date);
+
+        try {
+            return webClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/v1/availability/available")
+                            .queryParam("date", date)
+                            .build())
+                    .retrieve()
+                    .bodyToFlux(AvailabilityResponse.class)
+                    .collectList()
+                    .block();
+
+        } catch (WebClientRequestException e) {
             throw new AvailabilityServiceException("Availability Management Service is currently unreachable.");
         }
     }
