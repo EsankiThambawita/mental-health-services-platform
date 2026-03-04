@@ -4,11 +4,20 @@
     { name: 'Mood & Resources', icon: '🧠', path: '/pages/mood-tracking/index.html' },
     { name: 'Availability', icon: '📅', path: '/pages/availability/index.html' },
     { name: 'Appointments', icon: '📋', path: '/pages/appointments/index.html' },
-    { name: 'Recovery (Counselor)', icon: '📝', path: '/pages/recovery-plans/counselor.html' },
-    { name: 'Recovery (Patient)', icon: '💚', path: '/pages/recovery-plans/patient.html' },
+    { name: 'Recovery Plan', icon: '📝', path: '' },
   ];
 
-  // check which page we're on so we can highlight it
+  // Get role from localStorage
+  const role = localStorage.getItem('role');
+  if (role === 'COUNSELOR') {
+    pages[3].path = '/pages/recovery-plans/counselor.html';
+  } else if (role === 'PATIENT') {
+    pages[3].path = '/pages/recovery-plans/patient.html';
+  } else {
+    pages[3].path = '/pages/authentication/Signin.html'; // fallback if not logged in
+  }
+
+  // Figure out which page we're on
   const currentPath = window.location.pathname;
   function isActive(pagePath) {
     return currentPath.endsWith(pagePath) || currentPath.endsWith(pagePath.replace('/index.html', '/'));

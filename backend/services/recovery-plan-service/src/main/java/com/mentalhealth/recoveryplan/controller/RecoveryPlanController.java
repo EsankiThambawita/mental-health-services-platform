@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mentalhealth.recoveryplan.client.AuthClient;
 import com.mentalhealth.recoveryplan.dto.CreateRecoveryPlanRequest;
 import com.mentalhealth.recoveryplan.dto.CreateTaskRequest;
 import com.mentalhealth.recoveryplan.dto.RecoveryPlanResponse;
@@ -23,8 +25,12 @@ import com.mentalhealth.recoveryplan.service.RecoveryPlanService;
 
 import jakarta.validation.Valid;
 
-// RecoveryPlanController - REST API endpoints
-// http://localhost:8082/api/recovery-plans
+/**
+ * RecoveryPlanController with Auth Service token validation
+ * 
+ * INTER-SERVICE COMMUNICATION: Validates tokens with Auth Service on every
+ * request
+ */
 
 @RestController
 @RequestMapping("/api/recovery-plans")
@@ -32,123 +38,189 @@ import jakarta.validation.Valid;
 public class RecoveryPlanController {
 
     private final RecoveryPlanService service;
+    private final AuthClient authClient;
+    private static final String COUNSELOR = "COUNSELOR";
+    private static final String PATIENT = "PATIENT";
 
-    public RecoveryPlanController(RecoveryPlanService service) {
+    public RecoveryPlanController(RecoveryPlanService service, AuthClient authClient) {
         this.service = service;
+        this.authClient = authClient;
     }
 
-    // Counselor Endpoints
-    // Create Recovery Plan - POST /api/recovery-plans
+    // ---------------- Counselor Endpoints ----------------
+
     @PostMapping
-    public ResponseEntity<RecoveryPlanResponse> createPlan(@Valid @RequestBody CreateRecoveryPlanRequest request) {
-        RecoveryPlanResponse response = service.createPlan(request);
-        return new ResponseEntity<>(response, HttpStatus.CREATED); // 201
+    public ResponseEntity<RecoveryPlanResponse> createPlan(
+            @RequestHeader("Authorization") String token,
+            @Valid @RequestBody CreateRecoveryPlanRequest request) {
+
+        // Validate token with Auth Service
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        // Use userId from token as counselorId
+        RecoveryPlanResponse response = service.createPlan(request, user.userId);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // Get all plans created by a counselor - GET
-    // /api/recovery-plans/counselor/{counselorId}
-    @GetMapping("/counselor/{counselorId}")
+    @GetMapping("/counselor/plans")
     public ResponseEntity<List<RecoveryPlanResponse>> getPlansByCounselor(
-            @PathVariable String counselorId) {
-        List<RecoveryPlanResponse> plans = service.getPlansByCounselor(counselorId);
-        return ResponseEntity.ok(plans); // 200
-    }
+            @RequestHeader("Authorization") String token) {
 
-    // Get a specific plan (counselor access) - GET
-    // /api/recovery-plans/{planId}/counselor/{counselorId}
-    @GetMapping("/{planId}/counselor/{counselorId}")
-    public ResponseEntity<RecoveryPlanResponse> getPlanByCounselor(
-            @PathVariable String planId,
-            @PathVariable String counselorId) {
-        RecoveryPlanResponse plan = service.getPlanByCounselor(planId, counselorId);
-        return ResponseEntity.ok(plan);
-    }
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
 
-    // Update plan status - PATCH
-    // /api/recovery-plans/{planId}/counselor/{counsrlorId}/status
-    // PATCH = partial update (just status)
-    @PatchMapping("/{planId}/counselor/{counselorId}/status")
-    public ResponseEntity<RecoveryPlanResponse> updatePlanStatus(
-            @PathVariable String planId,
-            @PathVariable String counselorId,
-            @Valid @RequestBody UpdatePlanStatusRequest request) {
-        RecoveryPlanResponse plan = service.updatePlanStatus(planId, counselorId, request);
-        return ResponseEntity.ok(plan);
-    }
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
 
-    // Delete a recovery Plan - DELETE
-    // /api/recovery-plans/{planId}/counselor/{counselorId}
-    @DeleteMapping("/{planId}/counselor/{counselorId}")
-    public ResponseEntity<Void> deletePlan(
-            @PathVariable String planId,
-            @PathVariable String counselorId) {
-        service.deletePlan(planId, counselorId);
-        return ResponseEntity.noContent().build(); // 204
-    }
-
-    // Patient Endpoints
-    // Get all plans for a patient - GET /api/recovery-plans/patient/{patientId}
-    @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<RecoveryPlanResponse>> getPlansByPatient(
-            @PathVariable String patientId) {
-        List<RecoveryPlanResponse> plans = service.getPlansByPatient(patientId);
+        List<RecoveryPlanResponse> plans = service.getPlansByCounselor(user.userId);
         return ResponseEntity.ok(plans);
     }
 
-    // Get a specific plan (patient access) - GET
-    // /api/recovery-plans/{planId}/patient/{patientId}
-    @GetMapping("/{planId}/patient/{patientId}")
+    @GetMapping("/{planId}/counselor")
+    public ResponseEntity<RecoveryPlanResponse> getPlanByCounselor(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String planId) {
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        RecoveryPlanResponse plan = service.getPlanByCounselor(planId, user.userId);
+        return ResponseEntity.ok(plan);
+    }
+
+    @PatchMapping("/{planId}/counselor/status")
+    public ResponseEntity<RecoveryPlanResponse> updatePlanStatus(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String planId,
+            @Valid @RequestBody UpdatePlanStatusRequest request) {
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        RecoveryPlanResponse plan = service.updatePlanStatus(planId, user.userId, request);
+        return ResponseEntity.ok(plan);
+    }
+
+    @DeleteMapping("/{planId}/counselor")
+    public ResponseEntity<Void> deletePlan(
+            @RequestHeader("Authoirzation") String token,
+            @PathVariable String planId) {
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        service.deletePlan(planId, user.userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ---------------- User Endpoints ----------------
+
+    @GetMapping("/patient/plans")
+    public ResponseEntity<List<RecoveryPlanResponse>> getPlansByPatient(
+            @RequestHeader("Authorization") String token) {
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!PATIENT.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        List<RecoveryPlanResponse> plans = service.getPlansByPatient(user.userId);
+        return ResponseEntity.ok(plans);
+    }
+
+    @GetMapping("/{planId}/patient")
     public ResponseEntity<RecoveryPlanResponse> getPlanByPatient(
-            @PathVariable String planId,
-            @PathVariable String patientId) {
-        RecoveryPlanResponse plan = service.getPlanByPatient(planId, patientId);
+            @RequestHeader("Authorization") String token,
+            @PathVariable String planId) {
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!PATIENT.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        RecoveryPlanResponse plan = service.getPlanByPatient(planId, user.userId);
         return ResponseEntity.ok(plan);
     }
 
-    // Mark task as complete - PATCH
-    // /api/recovery-plans/{planId}/patient/{patientId}/tasks/{taskId}/complete
-    @PatchMapping("/{planId}/patient/{patientId}/tasks/{taskId}/complete")
+    @PatchMapping("/{planId}/patient/tasks/{taskId}/complete")
     public ResponseEntity<RecoveryPlanResponse> completeTask(
+            @RequestHeader("Authorization") String token,
             @PathVariable String planId,
-            @PathVariable String patientId,
             @PathVariable String taskId) {
-        RecoveryPlanResponse plan = service.completeTask(planId, taskId, patientId);
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!PATIENT.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        RecoveryPlanResponse plan = service.completeTask(planId, taskId, user.userId);
         return ResponseEntity.ok(plan);
     }
 
-    // Task Management Endpoints (Counselor))
-    // Ass a new task to a plan - POST
-    // /api/recovery-plans/{planId}/counselor/{counselorId}/tasks
-    @PostMapping("/{planId}/counselor/{counselorId}/tasks")
+    // ---------------- Counselor Task Management ----------------
+
+    @PostMapping("/{planId}/counselor/tasks")
     public ResponseEntity<RecoveryPlanResponse> addTask(
+            @RequestHeader("Authorization") String token,
             @PathVariable String planId,
-            @PathVariable String counselorId,
             @Valid @RequestBody CreateTaskRequest request) {
-        RecoveryPlanResponse plan = service.addTask(planId, counselorId, request);
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        RecoveryPlanResponse plan = service.addTask(planId, user.userId, request);
         return new ResponseEntity<>(plan, HttpStatus.CREATED);
     }
 
-    // Update an existing task - PUT
-    // /api/recovery-plans/{planId}/counselor/{counselorId}/tasks/{taskId}
-    @PutMapping("/{planId}/counselor/{counselorId}/tasks/{taskId}")
+    @PutMapping("/{planId}/counselor/tasks/{taskId}")
     public ResponseEntity<RecoveryPlanResponse> updateTask(
+            @RequestHeader("Authorization") String token,
             @PathVariable String planId,
-            @PathVariable String counselorId,
             @PathVariable String taskId,
             @Valid @RequestBody CreateTaskRequest request) {
-        RecoveryPlanResponse plan = service.updateTask(planId, taskId, counselorId, request);
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        RecoveryPlanResponse plan = service.updateTask(planId, taskId, user.userId, request);
         return ResponseEntity.ok(plan);
     }
 
-    // Delete a task from a plan - DELETE
-    // /api/recovery-plans/{planId}/counselor/{counselorId}/tasks/{taskId}
-    @DeleteMapping("/{planId}/counselor/{counselorId}/tasks/{taskId}")
+    @DeleteMapping("/{planId}/counselor/tasks/{taskId}")
     public ResponseEntity<RecoveryPlanResponse> deleteTask(
+            @RequestHeader("Authorization") String token,
             @PathVariable String planId,
-            @PathVariable String counselorId,
             @PathVariable String taskId) {
-        RecoveryPlanResponse plan = service.deleteTask(planId, taskId, counselorId);
+
+        AuthClient.ValidatedUser user = authClient.validateToken(token);
+
+        if (!COUNSELOR.equals(user.role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        RecoveryPlanResponse plan = service.deleteTask(planId, taskId, user.userId);
         return ResponseEntity.ok(plan);
     }
-
 }
