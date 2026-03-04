@@ -4,8 +4,13 @@ import com.mentalhealth.auth.dto.AuthResponse;
 import com.mentalhealth.auth.dto.LoginRequest;
 import com.mentalhealth.auth.dto.SignupRequest;
 import com.mentalhealth.auth.dto.ValidateTokenResponse;
+import com.mentalhealth.auth.model.User;
 import com.mentalhealth.auth.service.AuthService;
 import jakarta.validation.Valid;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,5 +69,34 @@ public class AuthController {
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Auth Service is running");
+    }
+
+    @GetMapping("/userIdByEmail")
+    public ResponseEntity<?> getUserIdByEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String token) {
+
+        try {
+            // Validate requester's token first
+            ValidateTokenResponse tokenValidation = authService.validateToken(token);
+            if (!tokenValidation.isValid()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            // Look up user by email
+            User user = authService.getUserByEmail(email);
+
+            Map<String, String> response = new java.util.HashMap<>();
+            response.put("userId", user.getId());
+            response.put("email", user.getEmail());
+            response.put("name", user.getName());
+            response.put("role", user.getRole().toString());
+
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "User not found with email: " + email));
+        }
     }
 }
