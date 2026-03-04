@@ -1,14 +1,12 @@
-// ============================================================
-// API Configuration for Resources & Mood Tracking Service
-// ============================================================
+// API config for the mood tracking service
 
 const MOOD_API = {
   BASE_URL: 'http://localhost:8081/api',
 
-  // ---------- URL Builders ----------
+  // build full URL
   url: (path) => `${MOOD_API.BASE_URL}${path}`,
 
-  // ---------- Response Handler ----------
+  // parse response or throw a useful error
   handleResponse: async (response) => {
     if (response.status === 204) return null;
     if (!response.ok) {
@@ -25,7 +23,7 @@ const MOOD_API = {
     return text ? JSON.parse(text) : null;
   },
 
-  // ---------- HTTP Methods ----------
+  // HTTP helpers
   get: async (path) => {
     const res = await fetch(MOOD_API.url(path));
     return MOOD_API.handleResponse(res);
@@ -54,9 +52,7 @@ const MOOD_API = {
     return MOOD_API.handleResponse(res);
   },
 
-  // ===================================================
-  // MOOD ENTRIES API
-  // ===================================================
+  // mood entries
   moodEntries: {
     create: (entry) => MOOD_API.post('/v1/mood-entries', entry),
     getById: (id) => MOOD_API.get(`/v1/mood-entries/${id}`),
@@ -68,9 +64,7 @@ const MOOD_API = {
       MOOD_API.get(`/v1/mood-entries/user/${userId}/statistics?startDate=${startDate}&endDate=${endDate}`),
   },
 
-  // ===================================================
-  // MOOD ANALYTICS API
-  // ===================================================
+  // mood analytics & summaries
   moodAnalytics: {
     generateDaily: (userId, date) =>
       MOOD_API.post(`/v1/mood-analytics/daily/${userId}?date=${date}`, {}),
@@ -82,9 +76,7 @@ const MOOD_API = {
     delete: (id) => MOOD_API.delete(`/v1/mood-analytics/${id}`),
   },
 
-  // ===================================================
-  // RESOURCES API
-  // ===================================================
+  // mental health resources
   resources: {
     create: (resource) => MOOD_API.post('/v1/resources', resource),
     getById: (id) => MOOD_API.get(`/v1/resources/${id}`),
@@ -93,15 +85,18 @@ const MOOD_API = {
     delete: (id) => MOOD_API.delete(`/v1/resources/${id}`),
   },
 
-  // ===================================================
-  // RESOURCE CATEGORIES API
-  // ===================================================
+  // resource categories
   categories: {
     create: (category) => MOOD_API.post('/v1/resource-categories', category),
     getById: (id) => MOOD_API.get(`/v1/resource-categories/${id}`),
     getAll: () => MOOD_API.get('/v1/resource-categories'),
     update: (id, category) => MOOD_API.put(`/v1/resource-categories/${id}`, category),
     delete: (id) => MOOD_API.delete(`/v1/resource-categories/${id}`),
+  },
+
+  // counselor availability (talks to the availability service)
+  counselorAvailability: {
+    getAvailableByDate: (date) =>
+      MOOD_API.get(`/v1/counselor-availability/available?date=${date}`),
   }
 };
-

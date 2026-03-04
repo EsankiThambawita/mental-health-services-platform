@@ -1,8 +1,6 @@
-// ============================================================
-// Resources & Mood Tracking - Main Application Logic
-// ============================================================
+// Main app logic for mood tracking & resources
 
-// ---- State ----
+// app state
 let currentUserId = '';
 let selectedMoodLevel = null;
 let selectedMoodCategory = null;
@@ -13,26 +11,25 @@ const MOOD_CATEGORIES = ['happy', 'sad', 'anxious', 'calm', 'angry', 'excited', 
 const MOOD_EMOJIS = { happy: '😊', sad: '😢', anxious: '😰', calm: '😌', angry: '😠', excited: '🤩', tired: '😴', hopeful: '🌟', stressed: '😣', grateful: '🙏' };
 const CATEGORY_COLORS = { happy: '#10b981', sad: '#6366f1', anxious: '#f59e0b', calm: '#3b82f6', angry: '#ef4444', excited: '#ec4899', tired: '#8b5cf6', hopeful: '#14b8a6', stressed: '#f97316', grateful: '#06b6d4' };
 
-// ============================================================
-// INITIALIZATION
-// ============================================================
+// kick everything off when the page loads
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initMoodForm();
   initResourcesTab();
   initCategoriesTab();
   initAnalyticsTab();
+  initAvailabilityTab();
   initUserIdInput();
 });
 
-// ---- User ID ----
+// save/restore user ID from localStorage
 function initUserIdInput() {
   const input = document.getElementById('userId');
   const saved = localStorage.getItem('mt_userId') || '';
   if (saved) {
     input.value = saved;
     currentUserId = saved;
-    // Auto-load data if user was saved
+    // load data if we already have a user
     setTimeout(() => refreshCurrentTab(), 100);
   }
   input.addEventListener('change', () => {
@@ -43,6 +40,7 @@ function initUserIdInput() {
 }
 
 function requireUserId() {
+  // make sure we have a user ID before doing anything user-specific
   if (!currentUserId) {
     showToast('Please enter your User ID first', 'error');
     document.getElementById('userId').focus();
@@ -51,9 +49,7 @@ function requireUserId() {
   return true;
 }
 
-// ============================================================
-// TAB NAVIGATION
-// ============================================================
+// tab switching
 function initTabs() {
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -73,6 +69,7 @@ function refreshCurrentTab() {
 }
 
 function refreshTab(tab) {
+  // figure out which tab we're on and load its data
   switch (tab) {
     case 'mood':
       if (currentUserId) loadMoodEntries();
@@ -89,9 +86,7 @@ function refreshTab(tab) {
   }
 }
 
-// ============================================================
-// TOAST NOTIFICATIONS
-// ============================================================
+// little toast popups for feedback
 function showToast(message, type = 'info') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
@@ -102,11 +97,9 @@ function showToast(message, type = 'info') {
   setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
 }
 
-// ============================================================
-// MOOD TRACKING TAB
-// ============================================================
+// mood form setup
 function initMoodForm() {
-  // Build mood level buttons
+  // mood level buttons (1-10)
   const selector = document.getElementById('moodSelector');
   for (let i = 1; i <= 10; i++) {
     const btn = document.createElement('button');
@@ -122,7 +115,7 @@ function initMoodForm() {
     selector.appendChild(btn);
   }
 
-  // Build category pills
+  // mood category pills
   const pills = document.getElementById('categoryPills');
   MOOD_CATEGORIES.forEach(cat => {
     const pill = document.createElement('button');
@@ -137,7 +130,7 @@ function initMoodForm() {
     pills.appendChild(pill);
   });
 
-  // Form submit
+  // handle form submission
   document.getElementById('moodEntryForm').addEventListener('submit', handleMoodSubmit);
 }
 
@@ -164,7 +157,7 @@ async function handleMoodSubmit(e) {
     }
     resetMoodForm();
     loadMoodEntries();
-    loadAnalytics(); // refresh stats after adding/editing entry
+    loadAnalytics(); // keep stats up to date
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -297,9 +290,7 @@ async function deleteMoodEntry(id) {
   }
 }
 
-// ============================================================
-// ANALYTICS TAB
-// ============================================================
+// analytics tab setup
 function initAnalyticsTab() {
   document.getElementById('analyticsDateRange').addEventListener('change', loadAnalytics);
   document.getElementById('generateDailyBtn').addEventListener('click', () => generateSummary('daily'));
@@ -343,7 +334,7 @@ async function loadStatistics(startDate, endDate) {
         <div class="stat-label">Dominant Mood</div>
       </div>`;
 
-    // Render distribution bar
+    // draw the mood distribution bar chart
     renderDistribution(stats.moodDistribution);
   } catch (err) {
     container.innerHTML = '<div class="empty-state"><p>No statistics available for this period.</p></div>';
@@ -382,7 +373,7 @@ async function loadSummaries() {
       return;
     }
 
-    // Sort newest first by when the summary was generated
+    // newest summaries first
     summaries.sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
 
     container.innerHTML = '<div class="analytics-grid">' +
@@ -437,9 +428,7 @@ async function generateSummary(type) {
   }
 }
 
-// ============================================================
-// RESOURCES TAB
-// ============================================================
+// resources tab setup
 function initResourcesTab() {
   document.getElementById('resourceSearchInput').addEventListener('input', debounce(filterResources, 400));
   document.getElementById('resourceCategoryFilter').addEventListener('change', filterResources);
@@ -449,10 +438,10 @@ function initResourcesTab() {
   document.getElementById('resourceForm').addEventListener('submit', handleResourceSubmit);
   document.getElementById('closeResourceModal').addEventListener('click', closeResourceModal);
   document.getElementById('cancelResourceBtn').addEventListener('click', closeResourceModal);
-  populateCategoryDropdowns(); // load categories into dropdowns on init
+  populateCategoryDropdowns();
 }
 
-// Fetch categories from API and populate both the filter and modal dropdowns
+// grab categories and fill the filter + modal dropdowns
 function populateCategoryDropdowns() {
   return MOOD_API.categories.getAll()
     .then(cats => {
@@ -462,7 +451,7 @@ function populateCategoryDropdowns() {
       allCategories = [];
     })
     .then(() => {
-      // Populate the category filter on the resources tab
+      // filter dropdown on resources tab
       const filterSelect = document.getElementById('resourceCategoryFilter');
       if (filterSelect) {
         const currentFilter = filterSelect.value;
@@ -476,7 +465,7 @@ function populateCategoryDropdowns() {
         filterSelect.value = currentFilter;
       }
 
-      // Populate the category select in the resource modal
+      // category dropdown in the add/edit modal
       const modalSelect = document.getElementById('resCategory');
       if (modalSelect) {
         const currentModal = modalSelect.value;
@@ -512,7 +501,7 @@ async function loadResources() {
   empty.classList.add('hidden');
 
   try {
-    // Load resources and categories in parallel
+    // fetch resources and categories at the same time
     const [resources] = await Promise.all([
       MOOD_API.resources.getAll(),
       populateCategoryDropdowns()
@@ -601,7 +590,7 @@ function openResourceModal(editData = null) {
   document.getElementById('resourceModalTitle').textContent = editData ? 'Edit Resource' : 'Add New Resource';
   document.getElementById('resourceSubmitBtn').textContent = editData ? 'Update Resource' : 'Create Resource';
 
-  // Refresh categories then fill form
+  // refresh categories then fill the form
   populateCategoryDropdowns().then(() => {
     if (editData) {
       document.getElementById('resTitle').value = editData.title || '';
@@ -707,9 +696,7 @@ async function deleteResource(id) {
   }
 }
 
-// ============================================================
-// RESOURCE CATEGORIES TAB
-// ============================================================
+// categories tab setup
 let editingCategoryId = null;
 
 function initCategoriesTab() {
@@ -840,9 +827,62 @@ async function deleteCategory(id) {
   }
 }
 
-// ============================================================
-// UTILITY FUNCTIONS
-// ============================================================
+// today's available counselors (calls the availability service)
+function initAvailabilityTab() {
+  document.getElementById('refreshAvailabilityBtn').addEventListener('click', loadTodayAvailability);
+  loadTodayAvailability();
+}
+
+async function loadTodayAvailability() {
+  const container = document.getElementById('todaySlotsList');
+  const loading = document.getElementById('todaySlotsLoading');
+  const empty = document.getElementById('todaySlotsEmpty');
+
+  container.innerHTML = '';
+  loading.classList.remove('hidden');
+  empty.classList.add('hidden');
+
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    const slots = await MOOD_API.counselorAvailability.getAvailableByDate(today);
+    loading.classList.add('hidden');
+
+    if (!slots || slots.length === 0) {
+      empty.classList.remove('hidden');
+      return;
+    }
+
+    // group by counselor so each one gets a card
+    const grouped = {};
+    slots.forEach(s => {
+      if (!grouped[s.counselorId]) grouped[s.counselorId] = [];
+      grouped[s.counselorId].push(s);
+    });
+
+    let html = '<div class="availability-today-grid">';
+    Object.entries(grouped).forEach(([counselorId, counselorSlots]) => {
+      html += `<div class="availability-today-card">
+        <div class="availability-today-header">
+          <span class="availability-today-icon">👤</span>
+          <span class="availability-today-name">${escapeHtml(counselorId)}</span>
+          <span class="availability-today-count">${counselorSlots.length} slot${counselorSlots.length > 1 ? 's' : ''}</span>
+        </div>
+        <div class="availability-today-slots">
+          ${counselorSlots.map(s => `<span class="availability-today-chip">${s.startTime} – ${s.endTime}</span>`).join('')}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+  } catch (err) {
+    loading.classList.add('hidden');
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Availability service unreachable</h3><p>Make sure the Availability Management Service is running.</p></div>`;
+  }
+}
+
+// helpers
 function formatDateTime(dateStr) {
   if (!dateStr) return '';
   try {
@@ -873,7 +913,7 @@ function getDateRange(range) {
   };
 }
 
-// Format date as local ISO string without timezone (yyyy-MM-ddTHH:mm:ss)
+// local ISO string without the timezone suffix (Spring doesn't like the Z)
 function toLocalISOString(date) {
   const pad = n => String(n).padStart(2, '0');
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
