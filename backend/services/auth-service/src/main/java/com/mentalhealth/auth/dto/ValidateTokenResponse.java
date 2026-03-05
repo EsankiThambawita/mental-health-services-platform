@@ -2,7 +2,6 @@ package com.mentalhealth.auth.dto;
 
 import com.mentalhealth.auth.model.UserRole;
 
-// Validation
 public class ValidateTokenResponse {
 
     private boolean valid;

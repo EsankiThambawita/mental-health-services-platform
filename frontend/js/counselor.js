@@ -1,11 +1,11 @@
 // Counselor Recovery Plans JavaScript
 
-checkAuth(); // Ensure user is logged in
+checkAuth(); 
 
 const RECOVERY_API = 'http://localhost:8083/api/recovery-plans';
 const token = getAuthHeader();
 
-// Display user info
+// Show user info
 document.getElementById('userName').textContent = localStorage.getItem('name');
 document.getElementById('userEmail').textContent = localStorage.getItem('email');
 
@@ -22,7 +22,7 @@ createPlanForm.addEventListener('submit', async (e) => {
   const title = document.getElementById('planTitle').value;
   const desc = document.getElementById('planDesc').value;
 
-  console.log('Creating plan for:', email); // Debug log
+  console.log('Creating plan for:', email); 
 
   try {
     // Step 1: Get patientId from email
@@ -227,7 +227,7 @@ async function viewPlanDetails(planId) {
   }
 }
 
-// Add task
+// Add task - Used prompt dialog boxes for simplicity
 function addTask(planId) {
   const description = prompt('Task description:');
   if (!description) return;
@@ -375,11 +375,9 @@ async function deletePlan(planId) {
   }
 }
 
-// Format date helper
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
   return new Date(dateStr).toLocaleDateString();
 }
 
-// Initial load
 loadPlans();

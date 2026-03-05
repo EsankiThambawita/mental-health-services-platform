@@ -11,8 +11,7 @@ public class SecurityConfig {
     /**
      * BCrypt password encoder for hashing passwords
      * 
-     * BCrypt automatically salts passwords and is resistant to rainbow table
-     * attacks
+     * BCrypt automatically salts passwords
      */
     @Bean
     public PasswordEncoder passwordEncoder() {

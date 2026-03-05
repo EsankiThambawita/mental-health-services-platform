@@ -32,7 +32,7 @@ public class AuthService {
 
         User user = new User(
                 request.getEmail(),
-                passwordEncoder.encode(request.getPassword()), // Hash password
+                passwordEncoder.encode(request.getPassword()),
                 request.getName(),
                 request.getRole());
 

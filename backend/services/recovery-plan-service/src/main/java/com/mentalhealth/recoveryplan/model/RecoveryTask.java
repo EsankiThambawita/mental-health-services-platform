@@ -1,19 +1,18 @@
 package com.mentalhealth.recoveryplan.model;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
 
 // RecoveryTask - An embedded document within RecoveryPlan
 public class RecoveryTask {
-    
+
     private String taskID;
     private String description;
     private LocalDateTime dueDate;
     private boolean completed;
     private LocalDateTime completedAt;
-    private String counselorNotes; // Optional: Notes from counselor about this specific task
+    private String counselorNotes;
     private LocalDateTime createdAt;
 
-    // For MongoDB
     public RecoveryTask() {
     }
 
@@ -82,5 +81,5 @@ public class RecoveryTask {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-    
+
 }

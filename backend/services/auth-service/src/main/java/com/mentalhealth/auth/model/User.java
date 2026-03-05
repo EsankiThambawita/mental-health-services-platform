@@ -15,7 +15,7 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
-    private String password; // Hashed with BCrypt
+    private String password;
 
     private String name;
 
@@ -24,9 +24,6 @@ public class User {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-    // BOILERPLATE NEEDED: No-args constructor, all-args constructor, getters,
-    // setters
 
     public User() {
     }

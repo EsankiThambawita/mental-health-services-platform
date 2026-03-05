@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "recovery_plan")
 public class RecoveryPlan {
 
-    // MongoDB document ID
     @Id
     private String id;
 
@@ -37,7 +36,6 @@ public class RecoveryPlan {
 
     private LocalDateTime updatedAt;
 
-    // Empty constructor for MongoDB
     public RecoveryPlan() {
     }
 

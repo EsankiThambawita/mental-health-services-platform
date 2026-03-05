@@ -54,14 +54,12 @@ public class RecoveryPlanController {
             @RequestHeader("Authorization") String token,
             @Valid @RequestBody CreateRecoveryPlanRequest request) {
 
-        // Validate token with Auth Service
         AuthClient.ValidatedUser user = authClient.validateToken(token);
 
         if (!COUNSELOR.equals(user.role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
 
-        // Use userId from token as counselorId
         RecoveryPlanResponse response = service.createPlan(request, user.userId);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
