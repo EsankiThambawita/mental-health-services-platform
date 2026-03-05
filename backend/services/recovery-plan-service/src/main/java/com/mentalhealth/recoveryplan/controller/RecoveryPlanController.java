@@ -111,7 +111,7 @@ public class RecoveryPlanController {
 
     @DeleteMapping("/{planId}/counselor")
     public ResponseEntity<Void> deletePlan(
-            @RequestHeader("Authoirzation") String token,
+            @RequestHeader("Authorization") String token,
             @PathVariable String planId) {
 
         AuthClient.ValidatedUser user = authClient.validateToken(token);
