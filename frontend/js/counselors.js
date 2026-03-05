@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8081/api/counselors";
+const API_BASE = `${ENV.COUNSELOR_DIRECTORY_BASE}/api/counselors`;
 
 /**
  * Display counselors in the container
@@ -17,9 +17,11 @@ function displayCounselors(counselors) {
         container.innerHTML += `
             <div class="card">
                 <h3>${c.name}</h3>
+                <p><strong>ID:</strong> <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;user-select:all">${c.id}</code></p>
                 <p><strong>Languages:</strong> ${c.languages.join(", ")}</p>
                 <p><strong>Specializations:</strong> ${c.specializations.join(", ")}</p>
                 <p><strong>Experience:</strong> ${c.experienceYears} years</p>
+                <button onclick="deleteCounselor('${c.id}', '${c.name.replace(/'/g, "\\'")}')" style="margin-top:10px;padding:6px 14px;background:#ef4444;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;">🗑 Delete</button>
             </div>
         `;
     });
@@ -38,6 +40,8 @@ async function loadCounselors() {
         alert("Failed to load counselors. Check console.");
     }
 }
+
+const VALID_SPECIALIZATIONS = ["DEPRESSION", "ANXIETY", "CAREER", "RELATIONSHIP", "STRESS"];
 
 /**
  * Add a new counselor
@@ -62,6 +66,13 @@ async function createCounselor() {
         return;
     }
 
+    // Validate specializations against allowed values
+    const invalid = specializations.filter(s => !VALID_SPECIALIZATIONS.includes(s));
+    if (invalid.length) {
+        alert(`Invalid specialization(s): ${invalid.join(", ")}\n\nAllowed values: ${VALID_SPECIALIZATIONS.join(", ")}`);
+        return;
+    }
+
     try {
         const res = await fetch(API_BASE, {
             method: "POST",
@@ -77,7 +88,7 @@ async function createCounselor() {
         if (!res.ok) {
             const text = await res.text();
             console.error("POST failed:", text);
-            alert("Error adding counselor. Check console.");
+            alert("Error adding counselor: " + (text || "Unknown error. Check console."));
             return;
         }
 
@@ -112,6 +123,29 @@ async function searchCounselors() {
     } catch (err) {
         console.error("Error searching counselors:", err);
         alert("Error searching counselors. Check console.");
+    }
+}
+
+/**
+ * Delete a counselor by ID
+ */
+async function deleteCounselor(id, name) {
+    if (!confirm(`Delete counselor "${name}"? This cannot be undone.`)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+
+        if (!res.ok) {
+            const text = await res.text();
+            console.error("DELETE failed:", text);
+            alert("Error deleting counselor: " + (text || "Unknown error."));
+            return;
+        }
+
+        loadCounselors();
+    } catch (err) {
+        console.error("Error deleting counselor:", err);
+        alert("Error deleting counselor. Check console.");
     }
 }
 

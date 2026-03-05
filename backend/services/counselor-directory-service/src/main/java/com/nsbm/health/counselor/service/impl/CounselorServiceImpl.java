@@ -1,4 +1,5 @@
 package com.nsbm.health.counselor.service.impl;
+import com.nsbm.health.counselor.exception.CounselorNotFoundException;
 import com.nsbm.health.counselor.util.MapperUtil;
 import com.nsbm.health.counselor.dto.*;
 import com.nsbm.health.counselor.model.CounselorProfile;
@@ -30,7 +31,7 @@ public class CounselorServiceImpl implements CounselorService {
     @Override
     public CounselorResponseDTO updateCounselor(String id, CounselorRequestDTO dto) {
         CounselorProfile existing = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Counselor not found"));
+                .orElseThrow(() -> new CounselorNotFoundException("Counselor not found with id: " + id));
 
         existing.setName(dto.getName());
         existing.setLanguages(dto.getLanguages());
@@ -52,7 +53,7 @@ public class CounselorServiceImpl implements CounselorService {
     public CounselorResponseDTO getCounselorById(String id) {
         return MapperUtil.toDTO(
                 repository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Counselor not found"))
+                        .orElseThrow(() -> new CounselorNotFoundException("Counselor not found with id: " + id))
         );
     }
 

@@ -1,7 +1,7 @@
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:8082/api/recovery-plans',
-  
+  BASE_URL: `${ENV.RECOVERY_PLAN_BASE}/api/recovery-plans`,
+
   // Helper function to build URLs
   buildUrl: (path) => `${API_CONFIG.BASE_URL}${path}`,
   
