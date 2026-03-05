@@ -3,7 +3,7 @@
    - Mongo atomic updates (findAndModify)
    - bookIfAvailable:
        AVAILABLE -> BOOKED
-   - releaseIfBooked (NEW):
+   - releaseIfBooked:
        BOOKED -> AVAILABLE
    ========================================================= */
 package com.nsbm.health.availability.repository;
