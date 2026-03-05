@@ -2,7 +2,7 @@
 
 checkAuth(); 
 
-const RECOVERY_API = 'http://localhost:8083/api/recovery-plans';
+const RECOVERY_API = `${ENV.RECOVERY_PLAN_BASE}/api/recovery-plans`;
 const token = getAuthHeader();
 
 // Show user info
@@ -27,7 +27,7 @@ createPlanForm.addEventListener('submit', async (e) => {
   try {
     // Step 1: Get patientId from email
     console.log('Fetching patient ID...');
-    const userRes = await fetch(`http://localhost:8084/api/auth/userIdByEmail?email=${encodeURIComponent(email)}`, {
+    const userRes = await fetch(`${ENV.AUTH_BASE}/api/auth/userIdByEmail?email=${encodeURIComponent(email)}`, {
       headers: { 'Authorization': token }
     });
 

@@ -1,7 +1,7 @@
 // API config for the mood tracking service
 
 const MOOD_API = {
-  BASE_URL: 'http://localhost:8081/api',
+  BASE_URL: `${ENV.MOOD_TRACKING_BASE}/api`,
 
   // build full URL
   url: (path) => `${MOOD_API.BASE_URL}${path}`,

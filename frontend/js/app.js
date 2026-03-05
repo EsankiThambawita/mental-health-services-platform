@@ -2,7 +2,8 @@
 // CONFIGURATION
 // ============================================
 
-const BASE_URL = "http://localhost:8082/api/v1/availability";
+const BASE_URL = `${ENV.AVAILABILITY_BASE}/api/v1/availability`;
+const COUNSELORS_URL = `${ENV.COUNSELOR_DIRECTORY_BASE}/api/counselors`;
 
 // ============================================
 // INIT AFTER DOM LOAD (IMPORTANT)
@@ -34,6 +35,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("✅ app.js loaded");
   console.log("availableByDateForm:", availableByDateForm);
+
+  // ============================================
+  // LOAD COUNSELORS INTO DROPDOWNS
+  // ============================================
+
+  async function loadCounselors() {
+    try {
+      const res = await fetch(COUNSELORS_URL);
+      const counselors = await res.json();
+
+      const defaultOption = '<option value="">-- Select a counselor --</option>';
+      const options = counselors.map(c =>
+        `<option value="${c.id}">${c.name} (${c.specializations.join(", ")})</option>`
+      ).join("");
+
+      const html = defaultOption + options;
+      if (createCounselorId) createCounselorId.innerHTML = html;
+      if (searchCounselorId) searchCounselorId.innerHTML = html;
+
+      if (counselors.length === 0) {
+        const emptyHtml = '<option value="">No counselors found — add one first</option>';
+        if (createCounselorId) createCounselorId.innerHTML = emptyHtml;
+        if (searchCounselorId) searchCounselorId.innerHTML = emptyHtml;
+      }
+    } catch (err) {
+      console.error("Failed to load counselors:", err);
+      const errorHtml = '<option value="">Failed to load counselors</option>';
+      if (createCounselorId) createCounselorId.innerHTML = errorHtml;
+      if (searchCounselorId) searchCounselorId.innerHTML = errorHtml;
+    }
+  }
+
+  loadCounselors();
 
   // ============================================
   // EVENT LISTENERS

@@ -1,6 +1,6 @@
 // Auth Service Functions
 
-const AUTH_API = 'http://localhost:8084/api/auth';
+const AUTH_API = `${ENV.AUTH_BASE}/api/auth`;
 
 // Signup function
 async function signup(data) {

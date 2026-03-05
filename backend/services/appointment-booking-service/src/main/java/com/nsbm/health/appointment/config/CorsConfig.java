@@ -1,4 +1,4 @@
-package com.nsbm.health.availability.config;
+package com.nsbm.health.appointment.config;
 
 
 import org.springframework.context.annotation.Bean;

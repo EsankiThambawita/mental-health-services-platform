@@ -15,7 +15,7 @@ function $(id) {
 ------------------------------ */
 function apiBase() {
     const v = $("apiBase")?.value?.trim();
-    return v || "http://localhost:8083";
+    return v || ENV.APPOINTMENT_BASE;
 }
 
 /* -----------------------------

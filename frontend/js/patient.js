@@ -2,7 +2,7 @@
 
 checkAuth(); 
 
-const RECOVERY_API = 'http://localhost:8083/api/recovery-plans';
+const RECOVERY_API = `${ENV.RECOVERY_PLAN_BASE}/api/recovery-plans`;
 const token = getAuthHeader();
 
 document.getElementById('userName').textContent = localStorage.getItem('name');
