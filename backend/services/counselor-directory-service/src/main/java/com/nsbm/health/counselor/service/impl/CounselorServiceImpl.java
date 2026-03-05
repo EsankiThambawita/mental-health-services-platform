@@ -63,5 +63,10 @@ public class CounselorServiceImpl implements CounselorService {
                 .map(MapperUtil::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void deleteCounselor(String id) {
+        repository.deleteById(id);
+    }
 }
 

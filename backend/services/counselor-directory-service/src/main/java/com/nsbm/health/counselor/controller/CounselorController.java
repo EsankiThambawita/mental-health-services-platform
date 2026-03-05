@@ -106,4 +106,8 @@ public class CounselorController {
             @PathVariable String counselorId) {
         return apiService.getCounselorWithAvailability(counselorId);
     }
+    @DeleteMapping("/{id}")
+    public void deleteCounselor(@PathVariable String id) {
+        service.deleteCounselor(id);
+    }
 }

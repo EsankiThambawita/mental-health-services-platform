@@ -19,4 +19,6 @@ public interface CounselorService {
     CounselorResponseDTO getCounselorById(String id);
 
     List<CounselorResponseDTO> searchCounselors(String query);
+
+    void deleteCounselor(String id);
 }
