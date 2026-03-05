@@ -13,7 +13,7 @@ public final class AppointmentMapper {
         AppointmentResponse r = new AppointmentResponse();
         r.setId(a.getId());
         r.setAvailabilityId(a.getAvailabilityId());
-        r.setUserId(a.getUserId());
+        r.setUserName(a.getUserName());
         r.setCounselorId(a.getCounselorId());
         r.setDate(a.getDate());
         r.setStartTime(a.getStartTime());

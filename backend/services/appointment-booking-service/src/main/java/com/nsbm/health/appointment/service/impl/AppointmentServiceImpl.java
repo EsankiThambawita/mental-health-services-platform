@@ -24,13 +24,11 @@ import com.nsbm.health.appointment.service.AppointmentService;
 import com.nsbm.health.appointment.util.AppointmentMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
@@ -56,7 +54,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentResponse bookAppointment(BookAppointmentRequest request) {
         log.info("Booking appointment - userName={}, availabilityId={}", request.getUserName(), request.getAvailabilityId());
 
-        if (appointmentRepository.existsByAvailabilityId(request.getAvailabilityId())) {
+        if (appointmentRepository.existsByAvailabilityIdAndStatusNot(request.getAvailabilityId(), AppointmentStatus.CANCELLED)) {
             throw new DuplicateBookingException("Slot " + request.getAvailabilityId() + " is already booked.");
         }
 
@@ -74,12 +72,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setCreatedAt(Instant.now());
         appointment.setUpdatedAt(Instant.now());
 
-        try {
-            Appointment saved = appointmentRepository.save(appointment);
-            return AppointmentMapper.toResponse(saved);
-        } catch (DuplicateKeyException e) {
-            throw new DuplicateBookingException("Slot " + request.getAvailabilityId() + " was taken by a concurrent request.");
-        }
+        Appointment saved = appointmentRepository.save(appointment);
+        return AppointmentMapper.toResponse(saved);
     }
 
     /* ---------------------------------------------------------
@@ -93,8 +87,17 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = findOrThrow(appointmentId);
 
-        // Release the slot so others can book it again
-        availabilityClient.releaseSlot(appointment.getAvailabilityId());
+        // Cannot cancel an already cancelled appointment
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new IllegalArgumentException("Appointment is already cancelled.");
+        }
+
+        // Release the slot so others can book it again (best-effort)
+        try {
+            availabilityClient.releaseSlot(appointment.getAvailabilityId());
+        } catch (Exception releaseEx) {
+            log.warn("Could not release slot {} (may already be released): {}", appointment.getAvailabilityId(), releaseEx.getMessage());
+        }
 
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setUpdatedAt(Instant.now());
@@ -108,8 +111,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     /* ---------------------------------------------------------
        RESCHEDULE APPOINTMENT
+       - Validates appointment is not cancelled
        - Releases old slot
-       - Books new slot
+       - Books new slot (with rollback on failure)
        - Updates appointment with new slot details
     ---------------------------------------------------------- */
     @Override
@@ -118,15 +122,42 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = findOrThrow(appointmentId);
 
-        if (appointmentRepository.existsByAvailabilityId(request.getNewAvailabilityId())) {
+        // Cannot reschedule a cancelled appointment
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new IllegalArgumentException("Cannot reschedule a cancelled appointment. Please book a new one.");
+        }
+
+        String oldAvailabilityId = appointment.getAvailabilityId();
+
+        // Cannot reschedule to the same slot
+        if (oldAvailabilityId.equals(request.getNewAvailabilityId())) {
+            throw new IllegalArgumentException("New slot is the same as the current slot.");
+        }
+
+        if (appointmentRepository.existsByAvailabilityIdAndStatusNot(request.getNewAvailabilityId(), AppointmentStatus.CANCELLED)) {
             throw new DuplicateBookingException("New slot " + request.getNewAvailabilityId() + " is already booked.");
         }
 
-        // Release old slot first
-        availabilityClient.releaseSlot(appointment.getAvailabilityId());
+        // Release old slot first (best-effort: if already released, just log and continue)
+        try {
+            availabilityClient.releaseSlot(oldAvailabilityId);
+        } catch (Exception releaseEx) {
+            log.warn("Could not release old slot {} (may already be released): {}", oldAvailabilityId, releaseEx.getMessage());
+        }
 
-        // Book new slot
-        AvailabilityResponse newSlot = availabilityClient.bookSlot(request.getNewAvailabilityId());
+        // Book new slot — if this fails, rollback by re-booking the old slot
+        AvailabilityResponse newSlot;
+        try {
+            newSlot = availabilityClient.bookSlot(request.getNewAvailabilityId());
+        } catch (Exception e) {
+            log.error("Failed to book new slot, rolling back old slot release: {}", e.getMessage());
+            try {
+                availabilityClient.bookSlot(oldAvailabilityId);
+            } catch (Exception rollbackEx) {
+                log.error("Rollback also failed for old slot {}: {}", oldAvailabilityId, rollbackEx.getMessage());
+            }
+            throw e;
+        }
 
         appointment.setAvailabilityId(newSlot.getAvailabilityId());
         appointment.setCounselorId(newSlot.getCounselorId());
@@ -136,11 +167,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.RESCHEDULED);
         appointment.setUpdatedAt(Instant.now());
 
-        try {
-            return AppointmentMapper.toResponse(appointmentRepository.save(appointment));
-        } catch (DuplicateKeyException e) {
-            throw new DuplicateBookingException("New slot " + request.getNewAvailabilityId() + " was taken by a concurrent request.");
-        }
+        return AppointmentMapper.toResponse(appointmentRepository.save(appointment));
     }
 
     /* ---------------------------------------------------------
