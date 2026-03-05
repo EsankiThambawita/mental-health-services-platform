@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counselor - Recovery Plans</title>
+  <link rel="stylesheet" href="../../css/rec-auth-styles.css">
+  <link rel="stylesheet" href="../../css/sidebar.css">
+</head>
+<body>
+  <div class="background-gradient"></div>
+  
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <div>
+          <h1>Recovery Plans Management</h1>
+          <p class="subtitle">Create and manage recovery plans for your patients</p>
+        </div>
+        <div class="user-info">
+          <strong id="userName"></strong>
+          <span id="userEmail"></span>
+          <br>
+          <button onclick="logout()" class="btn btn-danger btn-small" style="margin-top: 8px;">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div id="alert" class="hidden"></div>
+
+    <!-- Create Plan Card -->
+    <div class="card">
+      <h2>Create New Recovery Plan</h2>
+      <form id="createPlanForm">
+        <div class="form-group">
+          <label>Patient Email*</label>
+          <input type="email" id="patientEmail" required placeholder="patient@example.com">
+        </div>
+
+        <div class="form-group">
+          <label>Plan Title*</label>
+          <input type="text" id="planTitle" required placeholder="3-Month Anxiety Management Plan">
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="planDesc" placeholder="Describe the goals and approach for this recovery plan..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Create Recovery Plan</button>
+      </form>
+    </div>
+
+    <!-- Existing Plans -->
+    <div class="card">
+      <h2>Your Recovery Plans</h2>
+      <div id="loadingPlans" class="loading hidden">Loading plans...</div>
+      <div id="emptyPlans" class="empty-state hidden">No recovery plans yet. Create your first plan above!</div>
+      <div id="plansContainer"></div>
+    </div>
+  </div>
+
+  <script src="../../js/sidebar.js"></script>
+  <script src="../../js/auth.js"></script>
+  <script src="../../js/counselor.js"></script>
+</body>
+</html>
