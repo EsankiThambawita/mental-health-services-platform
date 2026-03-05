@@ -1,0 +1,32 @@
+{"properties": [
+  {
+    "name": "spring.h2.console.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.h2.console.enabled'"
+  },
+  {
+    "name": "spring.h2.console.path",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.h2.console.path'"
+  },
+  {
+    "name": "spring.h2.console.settings.web-allow-others",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.h2.console.settings.web-allow-others'"
+  },
+  {
+    "name": "spring.websocket.message.text.size-limit",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.websocket.message.text.size-limit'"
+  },
+  {
+    "name": "spring.websocket.message.binary.size-limit",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.websocket.message.binary.size-limit'"
+  },
+  {
+    "name": "cors.allowed-origins",
+    "type": "java.lang.String",
+    "description": "A description for 'cors.allowed-origins'"
+  }
+]}
