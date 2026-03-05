@@ -1,11 +1,10 @@
 // Patient Recovery Plans JavaScript
 
-checkAuth(); // Ensure user is logged in
+checkAuth(); 
 
 const RECOVERY_API = 'http://localhost:8083/api/recovery-plans';
 const token = getAuthHeader();
 
-// Display user info
 document.getElementById('userName').textContent = localStorage.getItem('name');
 document.getElementById('userEmail').textContent = localStorage.getItem('email');
 
@@ -44,7 +43,7 @@ async function loadPlans() {
   }
 }
 
-// Render a single plan
+// Show a single plan
 function renderPlan(plan) {
   const card = document.createElement('div');
   card.className = 'plan-card';
@@ -78,7 +77,7 @@ function renderPlan(plan) {
   
   plansContainer.appendChild(card);
   
-  // Render tasks
+  // Show tasks
   const tasksDiv = document.getElementById(`tasks${plan.id}`);
   
   if (plan.tasks && plan.tasks.length > 0) {
@@ -125,18 +124,16 @@ async function completeTask(planId, taskId) {
     }
 
     showAlert('Task marked as complete! Great job! 🎉', 'success');
-    loadPlans(); // Reload to show updated status
+    loadPlans(); 
     
   } catch (err) {
     showAlert(err.message, 'error');
   }
 }
 
-// Format date helper
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
   return new Date(dateStr).toLocaleDateString();
 }
 
-// Initial load
 loadPlans();

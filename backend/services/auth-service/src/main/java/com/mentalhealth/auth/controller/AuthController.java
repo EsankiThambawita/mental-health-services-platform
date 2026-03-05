@@ -77,7 +77,6 @@ public class AuthController {
             @RequestHeader("Authorization") String token) {
 
         try {
-            // Validate requester's token first
             ValidateTokenResponse tokenValidation = authService.validateToken(token);
             if (!tokenValidation.isValid()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
