@@ -79,7 +79,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             throw new BadRequestException("date is required");
         }
 
-        // ✅ Service-to-service communication (your marks!)
+        // Service-to-service communication
         counselorDirectoryClient.validateCounselorExists(request.getCounselorId());
 
         validateTimeRange(request.getStartTime(), request.getEndTime());
