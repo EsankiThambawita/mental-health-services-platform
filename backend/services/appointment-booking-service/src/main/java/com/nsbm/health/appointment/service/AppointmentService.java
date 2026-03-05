@@ -21,9 +21,7 @@ public interface AppointmentService {
 
     AppointmentResponse rescheduleAppointment(String appointmentId, RescheduleAppointmentRequest request);
 
-    List<AppointmentResponse> getAppointmentsByUserId(String userId);
-
-    List<AppointmentResponse> getAppointmentsByCounselorId(String counselorId);
+    List<AppointmentResponse> getAppointmentsByUserName(String userName);
 
     List<AvailabilityResponse> getAvailableSlotsByDate(LocalDate date);
 }

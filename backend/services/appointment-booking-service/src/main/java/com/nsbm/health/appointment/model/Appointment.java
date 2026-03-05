@@ -13,7 +13,8 @@ import java.time.LocalTime;
 
 /**
  * MongoDB document representing a booked appointment.
- * availabilityId carries a unique index to prevent double-booking at DB level.
+ * Active-booking uniqueness on availabilityId is enforced at application level
+ * (not via a unique DB index) to allow re-booking of cancelled slots.
  */
 @Document(collection = "appointments")
 public class Appointment {
@@ -21,10 +22,10 @@ public class Appointment {
     @Id
     private String id;
 
-    @Indexed(unique = true)
+    @Indexed
     private String availabilityId;
 
-    private String userId;
+    private String userName;
     private String counselorId;
     private LocalDate date;
     private LocalTime startTime;
@@ -47,7 +48,7 @@ public class Appointment {
                        LocalDate date, LocalTime startTime, LocalTime endTime,
                        AppointmentStatus status) {
         this.availabilityId = availabilityId;
-        this.userId = userId;
+        this.userName = userId;
         this.counselorId = counselorId;
         this.date = date;
         this.startTime = startTime;
@@ -61,8 +62,8 @@ public class Appointment {
     public String getAvailabilityId() { return availabilityId; }
     public void setAvailabilityId(String availabilityId) { this.availabilityId = availabilityId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 
     public String getCounselorId() { return counselorId; }
     public void setCounselorId(String counselorId) { this.counselorId = counselorId; }
