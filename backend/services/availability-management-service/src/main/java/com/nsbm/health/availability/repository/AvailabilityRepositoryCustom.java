@@ -11,4 +11,5 @@ public interface AvailabilityRepositoryCustom {
      * This prevents double-booking under concurrent requests.
      */
     Optional<AvailabilitySlot> bookIfAvailable(String availabilityId);
+    Optional<AvailabilitySlot> releaseIfBooked(String availabilityId);
 }

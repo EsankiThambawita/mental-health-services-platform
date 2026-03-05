@@ -1,4 +1,3 @@
-
 package com.nsbm.health.availability.controller;
 
 import com.nsbm.health.availability.dto.AvailabilityResponse;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +24,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+
 
 /// REST controller for managing counselor availability slots.
 ///
@@ -58,8 +57,8 @@ public class AvailabilityController {
         AvailabilityResponse created = availabilityService.createAvailability(request);
 
         URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
+                .fromCurrentRequest()          // /api/v1/availability
+                .path("/{id}")                 // /{id}
                 .buildAndExpand(created.getAvailabilityId())
                 .toUri();
 
@@ -96,7 +95,6 @@ public class AvailabilityController {
 
         return ResponseEntity.ok(booked);
     }
-
     @Operation(summary = "Get all AVAILABLE slots by date")
     @GetMapping("/available")
     public ResponseEntity<List<AvailabilityResponse>> getAvailableByDate(
@@ -104,5 +102,17 @@ public class AvailabilityController {
     ) {
         log.info("Get available slots by date: {}", date);
         return ResponseEntity.ok(availabilityService.getAvailableSlotsByDate(date));
+    }
+
+    /* =========================================================
+       AvailabilityController.java (Availability Service)
+       - Adds: PUT /api/v1/availability/{id}/release
+       - Lets Appointment service unlock slot on cancel/reschedule
+       ========================================================= */
+    @Operation(summary = "Release an availability slot (sets status to AVAILABLE)")
+    @PutMapping("/{id}/release")
+    public ResponseEntity<AvailabilityResponse> release(@PathVariable("id") String id) {
+        AvailabilityResponse released = availabilityService.releaseAvailability(id);
+        return ResponseEntity.ok(released);
     }
 }

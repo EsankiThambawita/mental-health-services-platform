@@ -12,7 +12,7 @@ public class AppointmentResponse {
 
     private String id;
     private String availabilityId;
-    private String userId;
+    private String userName;
     private String counselorId;
     private LocalDate date;
     private LocalTime startTime;
@@ -25,13 +25,13 @@ public class AppointmentResponse {
     public AppointmentResponse() {
     }
 
-    public AppointmentResponse(String id, String availabilityId, String userId,
+    public AppointmentResponse(String id, String availabilityId, String userName,
                                String counselorId, LocalDate date, LocalTime startTime,
                                LocalTime endTime, AppointmentStatus status,
                                String cancelReason, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.availabilityId = availabilityId;
-        this.userId = userId;
+        this.userName = userName;
         this.counselorId = counselorId;
         this.date = date;
         this.startTime = startTime;
@@ -48,8 +48,8 @@ public class AppointmentResponse {
     public String getAvailabilityId() { return availabilityId; }
     public void setAvailabilityId(String availabilityId) { this.availabilityId = availabilityId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 
     public String getCounselorId() { return counselorId; }
     public void setCounselorId(String counselorId) { this.counselorId = counselorId; }

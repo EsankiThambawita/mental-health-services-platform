@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="../../css/sidebar.css" />
 </head>
 
-
 <body>
 <header class="topbar">
     <div class="container topbar-inner">
@@ -37,7 +36,6 @@
         </div>
 
         <form id="bookForm" class="grid">
-
             <div class="field">
                 <label for="dateSelect">Select Date</label>
                 <input id="dateSelect" type="date" required />
@@ -51,8 +49,9 @@
             </div>
 
             <div class="field">
-                <label for="userId">Your User ID</label>
-                <input id="userId" type="text" value="user-1" required />
+                <label for="userName">Your Username</label>
+                <input id="userName" type="text" value="name" required />
+                <small class="hint">This will be saved in appointment DB.</small>
             </div>
 
             <div class="actions">
@@ -62,9 +61,7 @@
 
         <div class="feedback">
             <div class="status" id="bookStatus">Ready</div>
-            <div class="summary" id="bookSummary">
-                Select a date to see available time slots.
-            </div>
+            <div class="summary" id="bookSummary">Select a date to see available time slots.</div>
         </div>
     </section>
 
@@ -129,21 +126,13 @@
     <section class="card">
         <div class="card-head">
             <h2>My appointments</h2>
-            <p class="muted">View appointments by user or counselor</p>
+            <p class="muted">View appointments by userName</p>
         </div>
 
         <form id="getForm" class="grid">
             <div class="field">
-                <label for="queryType">Search by</label>
-                <select id="queryType">
-                    <option value="userId" selected>userId</option>
-                    <option value="counselorId">counselorId</option>
-                </select>
-            </div>
-
-            <div class="field">
-                <label for="queryValue">Value</label>
-                <input id="queryValue" type="text" value="user-1" required />
+                <label for="queryValue">Username</label>
+                <input id="queryValue" type="text" placeholder="e.g. Joey" required />
             </div>
 
             <div class="actions">
@@ -171,9 +160,7 @@
                 <tbody></tbody>
             </table>
 
-            <div class="empty" id="emptyState" hidden>
-                No appointments found.
-            </div>
+            <div class="empty" id="emptyState" hidden>No appointments found.</div>
         </div>
 
         <details class="debug">
@@ -182,9 +169,6 @@
         </details>
     </section>
 
-    <footer class="footer muted">
-        Tip: open this page via a local server (not file://) to avoid browser security issues.
-    </footer>
 </main>
 
 <script src="../../js/appointments.js"></script>

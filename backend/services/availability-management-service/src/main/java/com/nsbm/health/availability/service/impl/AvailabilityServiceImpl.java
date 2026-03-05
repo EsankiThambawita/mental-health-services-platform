@@ -79,7 +79,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             throw new BadRequestException("date is required");
         }
 
-        // Service-to-service communication
+
+        // ✅ Service-to-service communication (your marks!)
         counselorDirectoryClient.validateCounselorExists(request.getCounselorId());
 
         validateTimeRange(request.getStartTime(), request.getEndTime());
@@ -152,6 +153,15 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    public AvailabilityResponse releaseAvailability(String availabilityId) {
+        AvailabilitySlot updated = availabilityRepository
+                .releaseIfBooked(availabilityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Availability slot not found or not booked: " + availabilityId));
+
+        return toResponse(updated);
     }
 
     private void validateTimeRange(LocalTime start, LocalTime end) {
