@@ -213,6 +213,57 @@ $("clearCancel").addEventListener("click", () => {
 });
 
 /* =========================================================
+   LOAD AVAILABLE SLOTS FOR RESCHEDULE WHEN DATE CHANGES
+   - Same API as booking: GET /api/v1/appointments/available-slots?date=YYYY-MM-DD
+   - Populates newAvailabilityId dropdown
+========================================================= */
+$("rescheduleDateSelect").addEventListener("change", async () => {
+    const date = $("rescheduleDateSelect").value;
+    const slotSelect = $("newAvailabilityId");
+
+    slotSelect.innerHTML = "";
+    slotSelect.disabled = true;
+
+    if (!date) return;
+
+    setBanner("Loading available slots for reschedule...");
+    setStatus("rescheduleStatus", "", "Loading");
+    $("rescheduleSummary").textContent = "Fetching slots from availability service...";
+
+    try {
+        const slots = await request(
+            "GET",
+            `${apiBase()}/api/v1/appointments/available-slots?date=${date}`
+        );
+
+        if (!Array.isArray(slots) || slots.length === 0) {
+            slotSelect.innerHTML = `<option value="">No slots available</option>`;
+            setBanner("No available slots for this date.", "warn");
+            setStatus("rescheduleStatus", "warn", "No slots");
+            $("rescheduleSummary").textContent = "Try another date.";
+            return;
+        }
+
+        slotSelect.innerHTML = `<option value="">Select a time</option>`;
+        slots.forEach((slot) => {
+            const option = document.createElement("option");
+            option.value = slot.availabilityId;
+            option.textContent = `${slot.startTime} - ${slot.endTime} (Counselor: ${slot.counselorId})`;
+            slotSelect.appendChild(option);
+        });
+
+        slotSelect.disabled = false;
+        setBanner("Select a new time slot.", "info");
+        setStatus("rescheduleStatus", "", "Ready");
+        $("rescheduleSummary").textContent = `Loaded ${slots.length} slot(s).`;
+    } catch (err) {
+        setBanner("Could not load slots: " + err.message, "error");
+        setStatus("rescheduleStatus", "bad", "Error");
+        $("rescheduleSummary").textContent = "Availability service down or API wrong.";
+    }
+});
+
+/* =========================================================
    RESCHEDULE APPOINTMENT
    - Calls: PATCH /api/v1/appointments/{id}/reschedule
    - Body: { newAvailabilityId }
@@ -222,9 +273,13 @@ $("rescheduleForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const appointmentId = $("rescheduleAppointmentId").value.trim();
-    const newAvailabilityId = $("newAvailabilityId").value.trim();
+    const newAvailabilityId = $("newAvailabilityId").value;
 
-    if (!appointmentId || !newAvailabilityId) return;
+    if (!appointmentId || !newAvailabilityId) {
+        setBanner("Please fill in all fields.", "error");
+        setStatus("rescheduleStatus", "bad", "Missing");
+        return;
+    }
 
     setBanner("Rescheduling appointment...");
     setStatus("rescheduleStatus", "", "Rescheduling");
@@ -240,6 +295,11 @@ $("rescheduleForm").addEventListener("submit", async (e) => {
         setBanner(`Rescheduled appointment ${data.id} to ${data.date} ${data.startTime}-${data.endTime}.`, "success");
         setStatus("rescheduleStatus", "ok", "Rescheduled");
         $("rescheduleSummary").textContent = `New slot: ${data.availabilityId}`;
+
+        // Reset reschedule UI
+        $("rescheduleDateSelect").value = "";
+        $("newAvailabilityId").innerHTML = `<option value="">-- Select a date first --</option>`;
+        $("newAvailabilityId").disabled = true;
     } catch (err) {
         setBanner("Reschedule failed: " + err.message, "error");
         setStatus("rescheduleStatus", "bad", "Failed");
@@ -252,9 +312,11 @@ $("rescheduleForm").addEventListener("submit", async (e) => {
 ------------------------------ */
 $("clearReschedule").addEventListener("click", () => {
     $("rescheduleAppointmentId").value = "";
-    $("newAvailabilityId").value = "";
+    $("rescheduleDateSelect").value = "";
+    $("newAvailabilityId").innerHTML = `<option value="">-- Select a date first --</option>`;
+    $("newAvailabilityId").disabled = true;
     setStatus("rescheduleStatus", "", "Ready");
-    $("rescheduleSummary").textContent = "Enter the appointment id and a new slot id.";
+    $("rescheduleSummary").textContent = "Enter the appointment id, pick a date, and select a new slot.";
 });
 
 /* =========================================================

@@ -18,11 +18,6 @@
                 <p class="muted">Book, reschedule, cancel and view appointments</p>
             </div>
         </div>
-
-        <div class="env">
-            <label for="apiBase">API Base</label>
-            <input id="apiBase" type="text" value="http://localhost:8083" />
-        </div>
     </div>
 </header>
 
@@ -107,8 +102,15 @@
             </div>
 
             <div class="field">
-                <label for="newAvailabilityId">New Availability ID</label>
-                <input id="newAvailabilityId" type="text" placeholder="New slot id" required />
+                <label for="rescheduleDateSelect">Select New Date</label>
+                <input id="rescheduleDateSelect" type="date" required />
+            </div>
+
+            <div class="field">
+                <label for="newAvailabilityId">New Time Slot</label>
+                <select id="newAvailabilityId" disabled required>
+                    <option value="">-- Select a date first --</option>
+                </select>
             </div>
 
             <div class="actions">

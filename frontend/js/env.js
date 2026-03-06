@@ -7,11 +7,11 @@
 
 const ENV = {
   // Base host for all APIs
-  API_HOST: "http://localhost",
+  API_HOST: "http://34.227.138.7",
 
   // true  = call each microservice port directly (local dev)
   // false = route everything through Nginx on port 80 (production)
-  USE_DIRECT_PORTS: true,
+  USE_DIRECT_PORTS: false,
 
   // ---------- Service Ports (used when USE_DIRECT_PORTS = true) ----------
   PORTS: {
