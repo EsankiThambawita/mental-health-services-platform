@@ -25,7 +25,7 @@
 
 ## ✅ Pre-deployment Changes (Already Done)
 
-The following changes have been applied to your codebase. **No manual port/URL edits needed.**
+These are the changes I made to the codebase before deployment. **No manual port/URL edits needed.**
 
 ### Port Assignments (No Conflicts)
 | Service | Port | Database |
@@ -44,7 +44,7 @@ The following changes have been applied to your codebase. **No manual port/URL e
 - `recovery-plan-service` → auth-service reference set to `localhost:8084` ✅
 
 ### Frontend URL Centralization
-- Created `frontend/js/env.js` — single config file for all API URLs ✅
+- I created `frontend/js/env.js` — single config file for all API URLs ✅
 - All JS files now use `ENV.*_BASE` instead of hardcoded `localhost:XXXX` ✅
 - All HTML pages include `env.js` as the first script ✅
 
@@ -58,12 +58,15 @@ The following changes have been applied to your codebase. **No manual port/URL e
 
 ## BEFORE DEPLOYING: The One Thing You Must Change
 
-When you have your EC2 Public IP, edit **one file**: `frontend/js/env.js`
+Once you have your EC2 Public IP, edit **one file**: `frontend/js/env.js`
 
 ```javascript
 // Change these two lines:
-API_HOST: "http://localhost",     →  API_HOST: "http://<EC2_PUBLIC_IP>",
-    USE_DIRECT_PORTS: true,           →  USE_DIRECT_PORTS: false,
+// API_HOST: "http://localhost",
+// USE_DIRECT_PORTS: true,
+// Change to:
+API_HOST: "http://<EC2_PUBLIC_IP>",
+USE_DIRECT_PORTS: false,
 ```
 
 That's it. All frontend API calls will automatically route through Nginx on port 80.
@@ -466,7 +469,7 @@ Edit `frontend/js/env.js` on your local machine:
 
 ```javascript
 API_HOST: "http://<YOUR_EC2_PUBLIC_IP>",
-USE_DIRECT_PORTS: false,
+USE_DIRECT_PORTS: false
 ```
 
 ### Step 2: Create S3 Bucket
