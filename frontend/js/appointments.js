@@ -11,6 +11,19 @@ function $(id) {
 }
 
 /* -----------------------------
+   Auto-fill helpers (called from table action buttons)
+------------------------------ */
+function fillReschedule(appointmentId) {
+    $("rescheduleAppointmentId").value = appointmentId;
+    $("rescheduleForm").scrollIntoView({ behavior: "smooth" });
+}
+
+function fillCancel(appointmentId) {
+    $("cancelAppointmentId").value = appointmentId;
+    $("cancelForm").scrollIntoView({ behavior: "smooth" });
+}
+
+/* -----------------------------
    API base URL helper
 ------------------------------ */
 function apiBase() {
@@ -60,7 +73,12 @@ async function request(method, url, body) {
     const res = await fetch(url, options);
     if (!res.ok) {
         const errText = await res.text();
-        throw new Error(errText || "Request failed");
+        let message = errText || "Request failed";
+        try {
+            const errJson = JSON.parse(errText);
+            if (errJson.message) message = errJson.message;
+        } catch (_) { /* not JSON, use raw text */ }
+        throw new Error(message);
     }
 
     return res.json();
@@ -159,6 +177,8 @@ $("bookForm").addEventListener("submit", async (e) => {
         $("dateSelect").value = "";
         $("slotSelect").innerHTML = `<option value="">-- Select a date first --</option>`;
         $("slotSelect").disabled = true;
+
+        refreshAppointmentsTable();
     } catch (err) {
         setBanner("Booking failed: " + err.message, "error");
         setStatus("bookStatus", "bad", "Failed");
@@ -195,6 +215,8 @@ $("cancelForm").addEventListener("submit", async (e) => {
         setBanner(`Cancelled appointment ${data.id}. Slot released.`, "success");
         setStatus("cancelStatus", "ok", "Cancelled");
         $("cancelSummary").textContent = `Status: ${data.status}`;
+
+        refreshAppointmentsTable();
     } catch (err) {
         setBanner("Cancel failed: " + err.message, "error");
         setStatus("cancelStatus", "bad", "Failed");
@@ -297,9 +319,12 @@ $("rescheduleForm").addEventListener("submit", async (e) => {
         $("rescheduleSummary").textContent = `New slot: ${data.availabilityId}`;
 
         // Reset reschedule UI
+        $("rescheduleAppointmentId").value = "";
         $("rescheduleDateSelect").value = "";
         $("newAvailabilityId").innerHTML = `<option value="">-- Select a date first --</option>`;
         $("newAvailabilityId").disabled = true;
+
+        refreshAppointmentsTable();
     } catch (err) {
         setBanner("Reschedule failed: " + err.message, "error");
         setStatus("rescheduleStatus", "bad", "Failed");
@@ -318,6 +343,59 @@ $("clearReschedule").addEventListener("click", () => {
     setStatus("rescheduleStatus", "", "Ready");
     $("rescheduleSummary").textContent = "Enter the appointment id, pick a date, and select a new slot.";
 });
+
+/* =========================================================
+   REFRESH APPOINTMENTS TABLE
+   - Reloads the table if a userName is already in the search box
+========================================================= */
+async function refreshAppointmentsTable() {
+    const userName = $("queryValue").value.trim();
+    if (!userName) return;
+
+    const tbody = $("appointmentsTable").querySelector("tbody");
+    tbody.innerHTML = "";
+    $("emptyState").hidden = true;
+
+    const qs = new URLSearchParams({ userName });
+
+    try {
+        const appointments = await request(
+            "GET",
+            `${apiBase()}/api/v1/appointments?${qs.toString()}`
+        );
+
+        $("debugJson").textContent = JSON.stringify(appointments, null, 2);
+
+        if (!Array.isArray(appointments) || appointments.length === 0) {
+            setStatus("getStatus", "warn", "Empty");
+            $("getSummary").textContent = "Nothing matched.";
+            $("emptyState").hidden = false;
+            return;
+        }
+
+        appointments.forEach((a) => {
+            const row = document.createElement("tr");
+            const isCancelled = a.status === "CANCELLED";
+            row.innerHTML = `
+        <td>${a.date ?? ""}</td>
+        <td>${a.startTime ?? ""} - ${a.endTime ?? ""}</td>
+        <td>${a.counselorId ?? ""}</td>
+        <td>${a.status ?? ""}</td>
+        <td>${a.id ?? ""}</td>
+        <td>
+          ${!isCancelled ? `<button class="btn-sm primary" onclick="fillReschedule('${a.id}')">Reschedule</button>` : ""}
+          ${!isCancelled ? `<button class="btn-sm danger" onclick="fillCancel('${a.id}')">Cancel</button>` : ""}
+        </td>
+      `;
+            tbody.appendChild(row);
+        });
+
+        setStatus("getStatus", "ok", "Loaded");
+        $("getSummary").textContent = `Found ${appointments.length} appointment(s).`;
+    } catch (_) {
+        /* silent refresh — main operation already showed success */
+    }
+}
 
 /* =========================================================
    GET APPOINTMENTS
@@ -358,12 +436,17 @@ $("getForm").addEventListener("submit", async (e) => {
 
         appointments.forEach((a) => {
             const row = document.createElement("tr");
+            const isCancelled = a.status === "CANCELLED";
             row.innerHTML = `
         <td>${a.date ?? ""}</td>
         <td>${a.startTime ?? ""} - ${a.endTime ?? ""}</td>
         <td>${a.counselorId ?? ""}</td>
         <td>${a.status ?? ""}</td>
         <td>${a.id ?? ""}</td>
+        <td>
+          ${!isCancelled ? `<button class="btn-sm primary" onclick="fillReschedule('${a.id}')">Reschedule</button>` : ""}
+          ${!isCancelled ? `<button class="btn-sm danger" onclick="fillCancel('${a.id}')">Cancel</button>` : ""}
+        </td>
       `;
             tbody.appendChild(row);
         });
