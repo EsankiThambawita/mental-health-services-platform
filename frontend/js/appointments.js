@@ -32,6 +32,30 @@ function apiBase() {
 }
 
 /* -----------------------------
+   Counselor name cache + lookup
+------------------------------ */
+const counselorNameCache = {};
+
+async function fetchCounselorName(counselorId) {
+    if (!counselorId) return "";
+    if (counselorNameCache[counselorId]) return counselorNameCache[counselorId];
+    try {
+        const res = await fetch(`${ENV.COUNSELOR_DIRECTORY_BASE}/api/counselors/${encodeURIComponent(counselorId)}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        counselorNameCache[counselorId] = data.name || counselorId;
+    } catch (_) {
+        counselorNameCache[counselorId] = counselorId; // fallback to ID
+    }
+    return counselorNameCache[counselorId];
+}
+
+async function preloadCounselorNames(ids) {
+    const unique = [...new Set(ids.filter(id => id && !counselorNameCache[id]))];
+    await Promise.all(unique.map(id => fetchCounselorName(id)));
+}
+
+/* -----------------------------
    Top banner helpers
 ------------------------------ */
 function setBanner(text, type = "info") {
@@ -117,10 +141,12 @@ $("dateSelect").addEventListener("change", async () => {
         }
 
         slotSelect.innerHTML = `<option value="">Select a time</option>`;
+        await preloadCounselorNames(slots.map(s => s.counselorId));
         slots.forEach((slot) => {
             const option = document.createElement("option");
             option.value = slot.availabilityId;
-            option.textContent = `${slot.startTime} - ${slot.endTime} (Counselor: ${slot.counselorId})`;
+            const name = counselorNameCache[slot.counselorId] || slot.counselorId;
+            option.textContent = `${slot.startTime} - ${slot.endTime} (${name})`;
             slotSelect.appendChild(option);
         });
 
@@ -177,8 +203,6 @@ $("bookForm").addEventListener("submit", async (e) => {
         $("dateSelect").value = "";
         $("slotSelect").innerHTML = `<option value="">-- Select a date first --</option>`;
         $("slotSelect").disabled = true;
-
-        refreshAppointmentsTable();
     } catch (err) {
         setBanner("Booking failed: " + err.message, "error");
         setStatus("bookStatus", "bad", "Failed");
@@ -215,8 +239,6 @@ $("cancelForm").addEventListener("submit", async (e) => {
         setBanner(`Cancelled appointment ${data.id}. Slot released.`, "success");
         setStatus("cancelStatus", "ok", "Cancelled");
         $("cancelSummary").textContent = `Status: ${data.status}`;
-
-        refreshAppointmentsTable();
     } catch (err) {
         setBanner("Cancel failed: " + err.message, "error");
         setStatus("cancelStatus", "bad", "Failed");
@@ -267,10 +289,12 @@ $("rescheduleDateSelect").addEventListener("change", async () => {
         }
 
         slotSelect.innerHTML = `<option value="">Select a time</option>`;
+        await preloadCounselorNames(slots.map(s => s.counselorId));
         slots.forEach((slot) => {
             const option = document.createElement("option");
             option.value = slot.availabilityId;
-            option.textContent = `${slot.startTime} - ${slot.endTime} (Counselor: ${slot.counselorId})`;
+            const name = counselorNameCache[slot.counselorId] || slot.counselorId;
+            option.textContent = `${slot.startTime} - ${slot.endTime} (${name})`;
             slotSelect.appendChild(option);
         });
 
@@ -319,12 +343,9 @@ $("rescheduleForm").addEventListener("submit", async (e) => {
         $("rescheduleSummary").textContent = `New slot: ${data.availabilityId}`;
 
         // Reset reschedule UI
-        $("rescheduleAppointmentId").value = "";
         $("rescheduleDateSelect").value = "";
         $("newAvailabilityId").innerHTML = `<option value="">-- Select a date first --</option>`;
         $("newAvailabilityId").disabled = true;
-
-        refreshAppointmentsTable();
     } catch (err) {
         setBanner("Reschedule failed: " + err.message, "error");
         setStatus("rescheduleStatus", "bad", "Failed");
@@ -373,13 +394,15 @@ async function refreshAppointmentsTable() {
             return;
         }
 
+        await preloadCounselorNames(appointments.map(a => a.counselorId));
         appointments.forEach((a) => {
             const row = document.createElement("tr");
             const isCancelled = a.status === "CANCELLED";
+            const cName = counselorNameCache[a.counselorId] || a.counselorId || "";
             row.innerHTML = `
         <td>${a.date ?? ""}</td>
         <td>${a.startTime ?? ""} - ${a.endTime ?? ""}</td>
-        <td>${a.counselorId ?? ""}</td>
+        <td>${cName}</td>
         <td>${a.status ?? ""}</td>
         <td>${a.id ?? ""}</td>
         <td>
@@ -434,13 +457,15 @@ $("getForm").addEventListener("submit", async (e) => {
             return;
         }
 
+        await preloadCounselorNames(appointments.map(a => a.counselorId));
         appointments.forEach((a) => {
             const row = document.createElement("tr");
             const isCancelled = a.status === "CANCELLED";
+            const cName = counselorNameCache[a.counselorId] || a.counselorId || "";
             row.innerHTML = `
         <td>${a.date ?? ""}</td>
         <td>${a.startTime ?? ""} - ${a.endTime ?? ""}</td>
-        <td>${a.counselorId ?? ""}</td>
+        <td>${cName}</td>
         <td>${a.status ?? ""}</td>
         <td>${a.id ?? ""}</td>
         <td>
